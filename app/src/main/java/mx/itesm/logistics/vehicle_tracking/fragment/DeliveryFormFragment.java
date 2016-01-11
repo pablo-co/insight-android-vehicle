@@ -39,6 +39,7 @@ import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.fragment.FragmentResponder;
 import edu.mit.lastmite.insight_library.http.APIFetch;
@@ -46,6 +47,7 @@ import edu.mit.lastmite.insight_library.http.APIResponseHandler;
 import edu.mit.lastmite.insight_library.model.Delivery;
 import edu.mit.lastmite.insight_library.model.Errorable;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import edu.mit.lastmite.insight_library.util.ServiceUtils;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
@@ -53,7 +55,12 @@ public class DeliveryFormFragment extends FragmentResponder implements Errorable
 
     private static final String TAG = "DeliveryFormFragment";
 
-    public static final String EXTRA_DELIVERY = "mx.itesm.cartokm2.delivery";
+    @ServiceConstant
+    public static String EXTRA_DELIVERY;
+
+    static {
+        ServiceUtils.populateConstants(DeliveryFormFragment.class);
+    }
 
     @Inject
     protected APIFetch mAPIFetch;
@@ -184,7 +191,7 @@ public class DeliveryFormFragment extends FragmentResponder implements Errorable
         lockView();
     }
 
-    private void sendResult(int resultCode, Delivery delivery) {
+    protected void sendResult(int resultCode, Delivery delivery) {
         if (getTargetListener() == null) {
             return;
         }
@@ -194,6 +201,4 @@ public class DeliveryFormFragment extends FragmentResponder implements Errorable
 
         getTargetListener().onResult(getRequestCode(), resultCode, intent);
     }
-
-
 }

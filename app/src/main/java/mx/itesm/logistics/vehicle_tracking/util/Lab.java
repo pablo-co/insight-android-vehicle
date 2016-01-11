@@ -28,8 +28,8 @@ import android.util.Log;
 import edu.mit.lastmite.insight_library.model.JSONSerializer;
 import edu.mit.lastmite.insight_library.model.Parking;
 import edu.mit.lastmite.insight_library.model.Route;
-import edu.mit.lastmite.insight_library.model.Vehicle;
 import edu.mit.lastmite.insight_library.model.User;
+import edu.mit.lastmite.insight_library.model.Vehicle;
 
 // TODO change serializers and objets to ArrayList and key extraction
 public class Lab {
@@ -39,8 +39,6 @@ public class Lab {
     private static final String TRUCK_FILENAME = "vehicle.json";
     private static final String ROUTE_FILENAME = "route.json";
     private static final String PARKING_FILENAME = "route.json";
-
-    protected static Lab sLab;
     
     protected static User mUser;
     protected static Vehicle mVehicle;
@@ -51,7 +49,6 @@ public class Lab {
     protected JSONSerializer mVehicleSerializer;
     protected JSONSerializer mRouteSerializer;
     protected JSONSerializer mParkingSerializer;
-
 
     protected Context mAppContext;
 
@@ -80,7 +77,7 @@ public class Lab {
             }
         }
 
-        mRouteSerializer = new JSONSerializer(appContext, TRUCK_FILENAME);
+        mRouteSerializer = new JSONSerializer(appContext, ROUTE_FILENAME);
         try {
             mRoute = (Route) mRouteSerializer.loadObject("edu.mit.lastmite.insight_library.model.Route");
         } catch (Exception e) {
@@ -91,7 +88,7 @@ public class Lab {
             }
         }
 
-        mParkingSerializer = new JSONSerializer(appContext, TRUCK_FILENAME);
+        mParkingSerializer = new JSONSerializer(appContext, PARKING_FILENAME);
         try {
             mParking = (Parking) mParkingSerializer.loadObject("edu.mit.lastmite.insight_library.model.Parking");
         } catch (Exception e) {
@@ -103,20 +100,13 @@ public class Lab {
         }
     }
 
-    public static Lab get(Context appContext) {
-        if (sLab == null) {
-            sLab = new Lab(appContext);
-        }
-        return sLab;
-    }
-
     public User getUser() {
         return mUser;
     }
 
     public Lab setUser(User user) {
         mUser = user;
-        return sLab;
+        return this;
     }
 
     public boolean saveUser() {
@@ -146,7 +136,7 @@ public class Lab {
 
     public Lab setVehicle(Vehicle vehicle) {
         mVehicle = vehicle;
-        return sLab;
+        return this;
     }
 
     public boolean saveVehicle() {
@@ -176,7 +166,7 @@ public class Lab {
 
     public Lab setRoute(Route Route) {
         mRoute = Route;
-        return sLab;
+        return this;
     }
 
     public boolean saveRoute() {
@@ -206,7 +196,7 @@ public class Lab {
 
     public Lab setParking(Parking Parking) {
         mParking = Parking;
-        return sLab;
+        return this;
     }
 
     public boolean saveParking() {

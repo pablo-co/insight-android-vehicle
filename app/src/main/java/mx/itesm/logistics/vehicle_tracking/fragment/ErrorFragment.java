@@ -27,11 +27,19 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
+import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
+import edu.mit.lastmite.insight_library.util.ServiceUtils;
+
 public class ErrorFragment extends DialogFragment {
 
     public static final String DIALOG = "error_dialog";
 
-    private static final String EXTRA_MESSAGE = "mx.itesm.cartokm2.message";
+    @ServiceConstant
+    private static String EXTRA_MESSAGE;
+
+    static {
+        ServiceUtils.populateConstants(ErrorFragment.class);
+    }
 
     public static ErrorFragment newInstance(String message) {
         Bundle bundle = new Bundle();

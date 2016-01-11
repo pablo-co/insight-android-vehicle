@@ -22,36 +22,26 @@
 
 package mx.itesm.logistics.vehicle_tracking.task;
 
-import org.apache.http.Header;
-import org.json.JSONObject;
+import android.util.Log;
 
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.model.Route;
+import edu.mit.lastmite.insight_library.model.Location;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
 import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-public class CreateRouteTask extends NetworkTask {
-    protected Route mRoute;
+public class CreateLocationTask extends NetworkTask {
+    protected Location mLocation;
 
-    public CreateRouteTask(Route route) {
-        mRoute = route;
+    public CreateLocationTask(Location location) {
+        mLocation = location;
     }
 
     @Override
     public void execute(Callback callback) {
         mCallback = callback;
-        mAPIFetch.post("routes/postRoute", mRoute.buildParams(), new APIResponseHandler(mApplication, null, false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    Route route = new Route(response);
-                    saveRouteId(route.getId());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
+        updateLocation();
+        saveLocation(mLocation.getLatitude(), mLocation.getLongitude());
+        mAPIFetch.post("traces/postTrace", mLocation.buildParams(), new APIResponseHandler(mApplication, null, false) {
             @Override
             public void onFinish(boolean success) {
                 activateCallback(success);
@@ -61,10 +51,19 @@ public class CreateRouteTask extends NetworkTask {
 
     @Override
     public Object getModel() {
-        return mRoute;
+        return mLocation;
     }
 
-    protected void saveRouteId(long routeId) {
-        putGlobalLong(Preferences.PREFERENCES_ROUTE_ID, routeId);
+    protected void updateLocation() {
+        mLocation.setRouteId(getRouteId());
+    }
+
+    protected long getRouteId() {
+        return getGlobalLong(Preferences.PREFERENCES_ROUTE_ID);
+    }
+
+    protected void saveLocation(double latitude, double longitude) {
+        putGlobalFloat(Preferences.PREFERENCES_LATITUDE, (float) latitude);
+        putGlobalFloat(Preferences.PREFERENCES_LONGITUDE, (float) longitude);
     }
 }

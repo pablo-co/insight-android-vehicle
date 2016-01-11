@@ -27,6 +27,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 
+import javax.inject.Inject;
+
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import mx.itesm.logistics.vehicle_tracking.R;
@@ -39,6 +41,9 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
 
     public static final int REQUEST_LOGIN = 0;
 
+    @Inject
+    protected Lab mLab;
+
     @Override
     protected Fragment createFragment() {
         LoginFragment fragment = new LoginFragment();
@@ -49,13 +54,7 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
-        if (!Lab.get(this).getVehicle().isEmpty()) {
+        if (!mLab.getVehicle().isEmpty()) {
             launchMainActivity();
         }
     }
@@ -80,5 +79,4 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
-
 }

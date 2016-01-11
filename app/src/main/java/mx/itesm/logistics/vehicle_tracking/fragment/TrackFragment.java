@@ -22,74 +22,59 @@
 
 package mx.itesm.logistics.vehicle_tracking.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.util.Log;
+import android.support.design.widget.FloatingActionButton;
+import android.view.Choreographer;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TableLayout;
 
-import com.airbnb.android.airmapview.AirMapInterface;
-import com.airbnb.android.airmapview.AirMapMarker;
-import com.airbnb.android.airmapview.AirMapPolyline;
-import com.airbnb.android.airmapview.AirMapView;
-import com.airbnb.android.airmapview.listeners.OnMapInitializedListener;
-import com.google.android.gms.maps.model.LatLng;
-import com.rey.material.widget.Button;
-import com.rey.material.widget.TextView;
+import com.github.clans.fab.FloatingActionMenu;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-
-import org.apache.http.Header;
-import org.json.JSONObject;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import edu.mit.lastmite.insight_library.fragment.FragmentResponder;
-import edu.mit.lastmite.insight_library.http.APIFetch;
-import edu.mit.lastmite.insight_library.http.APIResponseHandler;
+import edu.mit.lastmite.insight_library.communication.TargetListener;
+import edu.mit.lastmite.insight_library.event.ClearMapEvent;
+import edu.mit.lastmite.insight_library.model.Location;
 import edu.mit.lastmite.insight_library.model.Parking;
 import edu.mit.lastmite.insight_library.model.Route;
 import edu.mit.lastmite.insight_library.model.Stop;
-import edu.mit.lastmite.insight_library.model.Vehicle;
-import edu.mit.lastmite.insight_library.queue.NetworkTaskQueue;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
-import edu.mit.lastmite.insight_library.util.Helper;
 import mx.itesm.logistics.vehicle_tracking.R;
-import edu.mit.lastmite.insight_library.model.Location;
-import mx.itesm.logistics.vehicle_tracking.VehicleTrackingApplication;
+import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
 import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
+import mx.itesm.logistics.vehicle_tracking.task.CreateParkingTask;
 import mx.itesm.logistics.vehicle_tracking.task.CreateRouteTask;
+import mx.itesm.logistics.vehicle_tracking.task.CreateStopTask;
+import mx.itesm.logistics.vehicle_tracking.task.StopRouteTask;
+import mx.itesm.logistics.vehicle_tracking.task.StopStopTask;
 import mx.itesm.logistics.vehicle_tracking.util.Api;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
-public class TrackFragment extends FragmentResponder implements OnMapInitializedListener {
+public class TrackFragment extends edu.mit.lastmite.insight_library.fragment.TrackFragment implements TargetListener {
 
-    protected static final int TIMER_LENGTH = 1000;
-    protected static final float OVERLAY_OPACITY = 0.35f;
+    public static final int REQUEST_DURATION = 0;
 
-    public enum State {
+    public static final int PANEL_DELAY = 30;
+
+    public enum TrackState implements State {
         IDLE,
+        STARTING,
+        LOADING,
+        WAITING_LOCATION,
         TRACKING,
         PARKING,
         DELIVERING
@@ -99,66 +84,34 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
     protected Bus mBus;
 
     @Inject
-    protected APIFetch mAPIFetch;
+    protected VehicleNetworkTaskQueue mNetworkTaskQueue;
 
     @Inject
-    protected NetworkTaskQueue mNetworkTaskQueue;
+    protected Api mApi;
 
-    protected CountDownTimer mCountDownTimer;
-    protected AirMapInterface mAirMapInterface;
-    protected List<LatLng> mTrackingPoints;
-    protected AirMapPolyline mAirMapPolyline;
-    protected AirMapMarker mMarker;
-
-    protected State mState = State.IDLE;
-    protected int times = 0;
-    protected float mAcumDistance = 0.0f;
-    protected Location mLastLocation;
-    protected BigDecimal mAcumSpeed = new BigDecimal(0);
-    protected BigDecimal mSpeedCount = new BigDecimal(0);
+    @Inject
+    protected Lab mLab;
 
     protected Route mRoute;
     protected Parking mParking;
     protected Stop mStop;
-
-    @Bind(R.id.track_startButton)
-    protected Button mStartButton;
+    protected long mLoadingStartTime = -1;
+    protected long mLoadingEndTime = -1;
 
     @Bind(R.id.track_deliveringButton)
-    protected Button mDeliveringButton;
+    protected FloatingActionButton mDeliveringButton;
 
     @Bind(R.id.track_parkingButton)
-    protected Button mParkingButton;
+    protected FloatingActionButton mParkingButton;
 
-    @Bind(R.id.track_trackingLayout)
-    protected LinearLayout mTrackingLayout;
+    @Bind(R.id.track_stopButton)
+    protected FloatingActionButton mStopButton;
 
-    @Bind(R.id.track_timeTextView)
-    protected TextView mTimeTextView;
+    @Bind(R.id.track_actionsMenu)
+    protected FloatingActionMenu mFloatingActionMenu;
 
-    @Bind(R.id.track_mapView)
-    protected AirMapView mMapView;
-
-    @Bind(R.id.track_overlayLayout)
-    protected FrameLayout mOverlayLayout;
-
-    @Bind(R.id.track_stateTextView)
-    protected TextView mStateTextView;
-
-    @Bind(R.id.track_actionButton)
-    protected Button mActionButton;
-
-    @Bind(R.id.track_distanceTextView)
-    protected TextView mDistanceTextView;
-
-    @Bind(R.id.track_speedTextView)
-    protected TextView mSpeedTextView;
-
-    @Bind(R.id.track_statsLayout)
-    protected TableLayout mStatsLayout;
-
-    @Bind(R.id.track_averageSpeedTextView)
-    protected TextView mAverageSpeedTextView;
+    @Bind(R.id.track_slidingUpPanel)
+    protected SlidingUpPanelLayout mSlidingUpPanel;
 
     @Override
     public void injectFragment(ApplicationComponent component) {
@@ -171,11 +124,7 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
         setRetainInstance(true);
         setHasOptionsMenu(true);
 
-        ((VehicleTrackingApplication) getActivity().getApplicationContext()).getVehicleComponent().inject(this);
-        mBus.register(this);
-
-        mTrackingPoints = new ArrayList<>();
-        mAirMapPolyline = new AirMapPolyline(null, mTrackingPoints, 0, 5, getResources().getColor(R.color.colorAccent));
+        mState = TrackState.IDLE;
 
         resetRoute();
         resetParking();
@@ -187,11 +136,10 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
         View view = inflater.inflate(R.layout.fragment_track, container, false);
         ButterKnife.bind(this, view);
 
-        mMapView.setOnMapInitializedListener(this);
-        mMapView.initialize(getChildFragmentManager());
-
-        mOverlayLayout.setAlpha(OVERLAY_OPACITY);
+        findTrackViews(view);
+        inflateMapsFragment(R.id.track_mapLayout);
         startIdle();
+        mSlidingUpPanel.setTouchEnabled(false);
 
         return view;
     }
@@ -210,26 +158,32 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
                 sendStopTracking();
                 return true;
             case R.id.track_menu_item_logout:
-                Api.get(getContext()).logout();
+                mApi.logout();
                 return true;
             default:
                 return super.onOptionsItemSelected(menuItem);
         }
     }
 
-
     @Override
-    public void onMapInitialized() {
-        mAirMapInterface = mMapView.getMapInterface();
-        mAirMapInterface.setMyLocationEnabled(true);
+    public void onResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != TargetListener.RESULT_OK) return;
+
+        switch (requestCode) {
+            case REQUEST_DURATION:
+                mLoadingStartTime = 0;
+                mLoadingEndTime = data.getIntExtra(LogLoadDialogFragment.EXTRA_DURATION, -1);
+                startStarting();
+        }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @OnClick(R.id.track_startButton)
     protected void onStartClicked() {
-        sendStartTracking();
-        startTracking();
+        startWaitingLocation();
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @OnClick(R.id.track_deliveringButton)
     protected void onDeliveringClicked() {
         resetStop();
@@ -237,6 +191,7 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
         startDelivery();
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @OnClick(R.id.track_parkingButton)
     protected void onParkingClicked() {
         resetParking();
@@ -244,36 +199,67 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
         startParking();
     }
 
-    @OnClick(R.id.track_actionButton)
-    protected void onActionClicked() {
-        switch (mState) {
-            case PARKING:
-                resetStop();
-                sendStartDelivering();
-                startDelivery();
-                break;
-            case DELIVERING:
-                sendStopDelivering();
-                startTracking();
-                break;
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.track_stopButton)
+    protected void onStopClicked() {
+        sendStopDelivering();
+        startTracking();
+        mBus.post(new ClearMapEvent());
+    }
+
+
+    /**
+     * Menu buttons
+     */
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.track_startTrackButton)
+    protected void onStartTrackClicked() {
+        sendStartTracking();
+        startWaitingLocation();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.track_startLoadButton)
+    protected void onStartLoadClicked() {
+        startLoading();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.track_logLoadButton)
+    protected void onLogLoadClicked() {
+        LogLoadDialogFragment fragment = LogLoadDialogFragment.newInstance(getContext());
+        fragment.setTargetListener(this, REQUEST_DURATION);
+        fragment.show(getActivity().getSupportFragmentManager(), null);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Subscribe
+    public void onLocationEvent(Location location) {
+        updateStats(location);
+        mLastLocation = location;
+        checkIfWaitingForLocation();
+    }
+
+    protected void checkIfWaitingForLocation() {
+        if (mState == TrackState.WAITING_LOCATION) {
+            sendStartTracking();
+            startTracking();
         }
     }
 
     protected void resetRoute() {
-        mRoute = Lab.get(getContext()).getRoute();
-        mRoute.setVehicleId(Lab.get(getContext()).getVehicle().getId());
+        mRoute = mLab.getRoute();
+        mRoute.setVehicleId(mLab.getVehicle().getId());
     }
 
     protected void resetParking() {
-        mParking = Lab.get(getContext()).getParking();
+        mParking = new Parking();
+        mParking.measureTime();
 
         if (mLastLocation != null) {
             mParking.setLatitude(mLastLocation.getLatitude());
             mParking.setLongitude(mLastLocation.getLongitude());
-        }
-
-        if (mRoute != null) {
-            mParking.setRouteId(mRoute.getId());
         }
     }
 
@@ -284,10 +270,14 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
             mStop.setLatitude(mLastLocation.getLatitude());
             mStop.setLongitude(mLastLocation.getLongitude());
         }
+    }
 
-        if (mRoute != null) {
-            mStop.setRouteId(mRoute.getId());
-        }
+    protected void saveStartTime() {
+        mLoadingStartTime = System.currentTimeMillis();
+    }
+
+    protected void saveEndTime() {
+        mLoadingEndTime = System.currentTimeMillis();
     }
 
     /**
@@ -295,252 +285,163 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
      **/
 
     protected void startIdle() {
+        goToState(TrackState.IDLE);
         resetStats();
-        goToState(State.IDLE);
-        stopTracking();
+        stopTimer();
         hideAllViews();
         showIdleView();
+        hidePanel();
+    }
+
+    protected void startStarting() {
+        goToState(TrackState.STARTING);
+        hideAllViews();
+        showStartingView();
+    }
+
+    protected void startLoading() {
+        saveStartTime();
+        goToState(TrackState.LOADING);
+        resetStats();
+        startTimer(TIMER_LENGTH);
+        hideAllViews();
+        showLoadingView();
+    }
+
+    protected void startWaitingLocation() {
+        goToState(TrackState.WAITING_LOCATION);
+        hideAllViews();
+        showWaitingLocationView();
+        startBackgroundServices();
     }
 
     protected void startTracking() {
-        goToState(State.TRACKING);
+        saveEndTime();
+        goToState(TrackState.TRACKING);
+        startTimer(TIMER_LENGTH);
         hideAllViews();
         showTrackingView();
-        startTimer(TIMER_LENGTH);
+        resetStats();
+        saveEndTime();
     }
 
     protected void startDelivery() {
-        goToState(State.DELIVERING);
+        goToState(TrackState.DELIVERING);
         hideAllViews();
         showDeliveringView();
     }
 
     protected void startParking() {
-        goToState(State.PARKING);
+        goToState(TrackState.PARKING);
         hideAllViews();
         showParkingView();
     }
 
+    /**
+     * Views
+     */
+
+    @Override
     protected void hideAllViews() {
-        mStatsLayout.setVisibility(View.GONE);
-        mStartButton.setVisibility(View.GONE);
-        mTimeTextView.setVisibility(View.GONE);
-        mTrackingLayout.setVisibility(View.GONE);
-        mActionButton.setVisibility(View.GONE);
+        super.hideAllViews();
+        mDeliveringButton.setVisibility(View.GONE);
+        mParkingButton.setVisibility(View.GONE);
+        mStopButton.setVisibility(View.GONE);
+        mFloatingActionMenu.setVisibility(View.GONE);
     }
 
     protected void showIdleView() {
-        Animation fadeInAnimation = createFadeInAnimation(200);
+        mFloatingActionMenu.setVisibility(View.VISIBLE);
+    }
 
+
+    protected void showStartingView() {
         mStartButton.setVisibility(View.VISIBLE);
-        mOverlayLayout.setVisibility(View.VISIBLE);
+        showPanel();
+    }
 
-        fadeInAnimation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
+    @Override
+    protected void showWaitingLocationView() {
+        super.showWaitingLocationView();
+        showPanel();
+    }
 
-            @Override
-            public void onAnimationEnd(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-
+    protected void showLoadingView() {
+        mTimeTextView.setVisibility(View.VISIBLE);
+        mStartButton.setVisibility(View.VISIBLE);
+        showPanel();
     }
 
     protected void showTrackingView() {
-        Animation fadeOutAnimation = createFadeOutAnimation(200);
-
         mTimeTextView.setVisibility(View.VISIBLE);
-        mTrackingLayout.setVisibility(View.VISIBLE);
         mStatsLayout.setVisibility(View.VISIBLE);
-
-        mOverlayLayout.startAnimation(fadeOutAnimation);
-
-        fadeOutAnimation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                mOverlayLayout.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
+        mParkingButton.setVisibility(View.VISIBLE);
+        mDeliveringButton.setVisibility(View.VISIBLE);
+        showPanel();
     }
 
     protected void showParkingView() {
         mTimeTextView.setVisibility(View.VISIBLE);
-        mActionButton.setVisibility(View.VISIBLE);
-        mActionButton.setText("delivering");
+        mDeliveringButton.setVisibility(View.VISIBLE);
     }
 
     protected void showDeliveringView() {
         mTimeTextView.setVisibility(View.VISIBLE);
-        mActionButton.setVisibility(View.VISIBLE);
-        mActionButton.setText("delivered");
-    }
-
-    protected void stopTracking() {
-        mStartButton.setVisibility(View.VISIBLE);
-        mTrackingLayout.setVisibility(View.GONE);
-        stopTimer();
-        //sendResult(TargetListener.RESULT_OK);
-
-        Animation fadeInAnimation = createFadeInAnimation(200);
-
-        mOverlayLayout.setVisibility(View.VISIBLE);
-        mOverlayLayout.startAnimation(fadeInAnimation);
-    }
-
-    protected Animation createFadeInAnimation(int duration) {
-        Animation fadeIn = new AlphaAnimation(OVERLAY_OPACITY, 1);
-        fadeIn.setInterpolator(new DecelerateInterpolator());
-        fadeIn.setDuration(duration);
-
-        return fadeIn;
-    }
-
-    protected Animation createFadeOutAnimation(int duration) {
-        Animation fadeOut = new AlphaAnimation(1, OVERLAY_OPACITY);
-        fadeOut.setInterpolator(new AccelerateInterpolator());
-        fadeOut.setDuration(duration);
-
-        return fadeOut;
-    }
-
-    protected void goToState(State state) {
-        mState = state;
-        updateStateView();
+        mStopButton.setVisibility(View.VISIBLE);
     }
 
     protected void updateStateView() {
         String label = "";
-        switch (mState) {
+        switch ((TrackState) mState) {
             case IDLE:
-                label = "idle";
+                label = getString(R.string.state_idle);
+                break;
+            case STARTING:
+                label = getString(R.string.state_starting);
+            case LOADING:
+                label = getString(R.string.state_loading);
+                break;
+            case WAITING_LOCATION:
+                label = getString(R.string.state_waiting);
                 break;
             case TRACKING:
-                label = "tracking";
+                label = getString(R.string.state_tracking);
                 break;
             case DELIVERING:
-                label = "delivering";
+                label = getString(R.string.state_delivering);
                 break;
             case PARKING:
-                label = "parking";
+                label = getString(R.string.state_parking);
                 break;
         }
         mStateTextView.setText(label);
     }
 
-    @Subscribe
-    public void locationUpdate(Location location) {
-        updateStats(location);
-        addMarkerToMap(location.getLatitude(), location.getLongitude());
-        drawPath();
-    }
-
-    protected void addMarkerToMap(double latitude, double longitude) {
-        mTrackingPoints.add(new LatLng(latitude, longitude));
-
-        if (mMarker != null) {
-            mAirMapInterface.removeMarker(mMarker);
+    @SuppressLint("NewApi")
+    protected void showPanel() {
+        mSlidingUpPanel.setTouchEnabled(true);
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        if (currentapiVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            Choreographer.getInstance().postFrameCallbackDelayed(new Choreographer.FrameCallback() {
+                @Override
+                public void doFrame(long frameTimeNanos) {
+                    mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                }
+            }, PANEL_DELAY);
         }
-
-        mMarker = new AirMapMarker.Builder()
-                .position(new LatLng(latitude, longitude))
-                .build();
-        mAirMapInterface.addMarker(mMarker);
-        mAirMapInterface.setCenterZoom(new LatLng(latitude, longitude), 18);
     }
 
-    protected void drawPath() {
-        mAirMapPolyline.setPoints(mTrackingPoints);
-        mAirMapInterface.addPolyline(mAirMapPolyline);
-    }
-
-
-    protected void updateStats(Location location) {
-        if (mLastLocation != null) {
-            try {
-                android.location.Location lastLocation = new android.location.Location("");
-                lastLocation.setLatitude(mLastLocation.getLatitude());
-                lastLocation.setLongitude(mLastLocation.getLongitude());
-
-                android.location.Location newLocation = new android.location.Location("");
-                newLocation.setLatitude(location.getLatitude());
-                newLocation.setLongitude(location.getLongitude());
-
-            /* Calculate distance */
-                float distanceInMeters = lastLocation.distanceTo(newLocation);
-                mAcumDistance += distanceInMeters / 1000.0f;
-                String distance = Helper.get(getActivity()).formatDouble(mAcumDistance);
-                mDistanceTextView.setText(distance + " km");
-
-            /* Calculate speed */
-                String speed = Helper.get(getActivity()).formatDouble(location.getSpeed());
-                mSpeedTextView.setText(speed + " kph");
-
-            /* Averge speed */
-                mAcumSpeed = mAcumSpeed.add(new BigDecimal(location.getSpeed()));
-                mSpeedCount = mSpeedCount.add(new BigDecimal(1));
-                String averageSpeed = Helper.get(getActivity()).formatDouble(mAcumSpeed.divide(mSpeedCount, 2, RoundingMode.HALF_UP).doubleValue());
-                mAverageSpeedTextView.setText(averageSpeed + " kph");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        mLastLocation = location;
-
-    }
-
-    protected void updateTime() {
-        mTimeTextView.setText(secondsToString(times));
-    }
-
-    protected void resetStats() {
-        mAcumSpeed = new BigDecimal(0);
-        mSpeedCount = new BigDecimal(0);
-        mAcumDistance = 0;
-        times = 0;
-    }
-
-    private String secondsToString(int time) {
-        int mins = time / 60;
-        int secs = time % 60;
-
-        String strMin = String.format("%02d", mins);
-        String strSec = String.format("%02d", secs);
-        return String.format("%s:%s", strMin, strSec);
-    }
-
-    protected void startTimer(final int time) {
-        stopTimer();
-        mCountDownTimer = new CountDownTimer(time, 1000) {
-            public void onTick(long millisUntilFinished) {
-            }
-
-            public void onFinish() {
-                times++;
-                updateTime();
-                startTimer(time);
-            }
-        };
-        mCountDownTimer.start();
-    }
-
-    protected void stopTimer() {
-        if (mCountDownTimer != null) {
-            mCountDownTimer.cancel();
+    @SuppressLint("NewApi")
+    protected void hidePanel() {
+        mSlidingUpPanel.setTouchEnabled(false);
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        if (currentapiVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            Choreographer.getInstance().postFrameCallbackDelayed(new Choreographer.FrameCallback() {
+                @Override
+                public void doFrame(long frameTimeNanos) {
+                    mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                }
+            }, PANEL_DELAY);
         }
     }
 
@@ -550,56 +451,20 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
 
     protected void sendStartTracking() {
         mRoute.measureTime();
-        /*CreateRouteTask task = new CreateRouteTask(mRoute);
-        ((VehicleAppComponent) getComponent()).inject(task);
-        mNetworkTaskQueue.add(task);*/
-        Log.d("TRACKING", mRoute.buildParams().toString());
-        mAPIFetch.post("routes/postRoute", mRoute.buildParams(), new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    routeCreated(new Route(response));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
+        if (mLoadingStartTime != -1 && mLoadingEndTime != -1) {
+            mRoute.setLoadingDuration(mLoadingEndTime - mLoadingStartTime);
+        }
+        CreateRouteTask task = new CreateRouteTask(mRoute);
+        mNetworkTaskQueue.add(task);
+        startBackgroundServices();
     }
 
     protected void sendStopTracking() {
         mRoute.measureTime();
-        mAPIFetch.post("routes/postEnd", mRoute.buildParams(), new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    routeEnded(new Route(response));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
-    }
-
-    protected void routeCreated(Route route) {
-        mRoute = route;
-        Lab.get(getContext()).setRoute(mRoute).saveRoute();
-        startBackgroundServices();
-    }
-
-    protected void routeEnded(Route route) {
-        Lab.get(getContext()).deleteRoute();
-        resetRoute();
+        StopRouteTask task = new StopRouteTask(mRoute);
+        mNetworkTaskQueue.add(task);
         stopBackgroundServices();
+        resetRoute();
     }
 
     /**
@@ -607,33 +472,10 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
      */
 
     protected void sendStartParking() {
-        mParking.measureTime();
-        Log.d("PARKING", mParking.buildParams().toString());
-        mAPIFetch.post("parkings/postInitialparking", mParking.buildParams(), new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    parkingCreated(new Parking(response));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
-    }
-
-    protected void parkingCreated(Parking parking) {
-        mParking = parking;
-        Lab.get(getContext()).setParking(mParking).saveParking();
-    }
-
-    protected void parkingEnded(Parking parking) {
-        Lab.get(getContext()).deleteParking();
         resetParking();
+        mParking.measureTime();
+        CreateParkingTask task = new CreateParkingTask(mParking);
+        mNetworkTaskQueue.add(task);
     }
 
     /**
@@ -641,57 +483,21 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
      */
 
     protected void sendStartDelivering() {
+        resetStop();
         mStop.measureTime();
-        Log.d("DELIVERING", mStop.buildParams().toString());
-        mAPIFetch.post("stops/postInitialstop", mStop.buildParams(), new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    deliveringCreated(new Stop(response));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
+        CreateStopTask task = new CreateStopTask(mStop);
+        mNetworkTaskQueue.add(task);
     }
 
     protected void sendStopDelivering() {
         mStop.measureTime();
-        mAPIFetch.post("stops/postEndstop", mStop.buildParams(), new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    deliveringEnded(new Stop(response));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
+        StopStopTask task = new StopStopTask(mStop);
+        mNetworkTaskQueue.add(task);
     }
 
-    protected void deliveringCreated(Stop stop) {
-        mStop = stop;
-    }
-
-    protected void deliveringEnded(Stop stop) {
-        resetStop();
-    }
-
-    private void sendResult(int resultCode) {
-        if (getTargetListener() == null) return;
-
-        getTargetListener().onResult(getRequestCode(), resultCode, null);
-    }
+    /**
+     * Services
+     */
 
     protected void startBackgroundServices() {
         Intent intent = new Intent(getActivity(), LocationManagerService.class);
@@ -702,5 +508,4 @@ public class TrackFragment extends FragmentResponder implements OnMapInitialized
         Intent intent = new Intent(getActivity(), LocationManagerService.class);
         getActivity().stopService(intent);
     }
-
 }

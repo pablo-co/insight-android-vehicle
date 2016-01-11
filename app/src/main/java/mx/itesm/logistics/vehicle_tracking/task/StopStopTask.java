@@ -20,28 +20,42 @@
  * Created by Pablo Cárdenas on 25/10/15.
  */
 
-package mx.itesm.logistics.vehicle_tracking.util;
+package mx.itesm.logistics.vehicle_tracking.task;
 
-import android.content.Context;
-import android.content.Intent;
+import edu.mit.lastmite.insight_library.http.APIResponseHandler;
+import edu.mit.lastmite.insight_library.model.Stop;
+import edu.mit.lastmite.insight_library.task.NetworkTask;
+import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-import javax.inject.Inject;
+public class StopStopTask extends NetworkTask {
+    protected Stop mStop;
 
-import mx.itesm.logistics.vehicle_tracking.activity.LoginActivity;
-
-public class Api {
-    protected Lab mLab;
-    protected Context mAppContext;
-
-    public Api(Context appContext, Lab lab) {
-        mAppContext = appContext;
-        mLab = lab;
+    public StopStopTask(Stop stop) {
+        mStop = stop;
     }
 
-    public void logout() {
-        mLab.deleteVehicle();
-        Intent intent = new Intent(mAppContext, LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mAppContext.startActivity(intent);
+    @Override
+    public void execute(Callback callback) {
+        mCallback = callback;
+        updateStop();
+        mAPIFetch.post("stops/postEndstop", mStop.buildParams(), new APIResponseHandler(mApplication, null, false) {
+            @Override
+            public void onFinish(boolean success) {
+                activateCallback(success);
+            }
+        });
+    }
+
+    @Override
+    public Object getModel() {
+        return mStop;
+    }
+
+    protected void updateStop() {
+        mStop.setId(getStopId());
+    }
+
+    protected long getStopId() {
+        return getGlobalLong(Preferences.PREFERENCES_STOP_ID);
     }
 }

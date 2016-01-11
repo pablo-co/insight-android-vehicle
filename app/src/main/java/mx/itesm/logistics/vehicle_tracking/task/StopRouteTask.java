@@ -20,28 +20,42 @@
  * Created by Pablo Cárdenas on 25/10/15.
  */
 
-package mx.itesm.logistics.vehicle_tracking.util;
+package mx.itesm.logistics.vehicle_tracking.task;
 
-import android.content.Context;
-import android.content.Intent;
+import edu.mit.lastmite.insight_library.http.APIResponseHandler;
+import edu.mit.lastmite.insight_library.model.Route;
+import edu.mit.lastmite.insight_library.task.NetworkTask;
+import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-import javax.inject.Inject;
+public class StopRouteTask extends NetworkTask {
+    protected Route mRoute;
 
-import mx.itesm.logistics.vehicle_tracking.activity.LoginActivity;
-
-public class Api {
-    protected Lab mLab;
-    protected Context mAppContext;
-
-    public Api(Context appContext, Lab lab) {
-        mAppContext = appContext;
-        mLab = lab;
+    public StopRouteTask(Route route) {
+        mRoute = route;
     }
 
-    public void logout() {
-        mLab.deleteVehicle();
-        Intent intent = new Intent(mAppContext, LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mAppContext.startActivity(intent);
+    @Override
+    public void execute(Callback callback) {
+        mCallback = callback;
+        updateRoute();
+        mAPIFetch.post("routes/postEnd", mRoute.buildParams(), new APIResponseHandler(mApplication, null, false) {
+            @Override
+            public void onFinish(boolean success) {
+                activateCallback(success);
+            }
+        });
+    }
+
+    @Override
+    public Object getModel() {
+        return mRoute;
+    }
+
+    protected void updateRoute() {
+        mRoute.setId(getRouteId());
+    }
+
+    protected long getRouteId() {
+        return getGlobalLong(Preferences.PREFERENCES_ROUTE_ID);
     }
 }

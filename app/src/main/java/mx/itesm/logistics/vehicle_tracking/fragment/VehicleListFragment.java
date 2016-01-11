@@ -42,23 +42,28 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.fragment.FragmentResponder;
 import edu.mit.lastmite.insight_library.http.APIFetch;
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.util.ApplicationComponent;
-import mx.itesm.logistics.vehicle_tracking.R;
 import edu.mit.lastmite.insight_library.model.Vehicle;
+import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import edu.mit.lastmite.insight_library.util.ServiceUtils;
+import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
 public class VehicleListFragment extends FragmentResponder implements ListView.OnItemClickListener {
-
     public static final String TAG = "VehicleListFragment";
 
-    public static final String EXTRA_TRUCK = "com.gruporaido.tasker.extra_vehicle";
+    @ServiceConstant
+    public static String EXTRA_TRUCK;
 
     public static final int REQUEST_NEW = 0;
 
+    static {
+        ServiceUtils.populateConstants(VehicleListFragment.class);
+    }
 
     @Inject
     protected APIFetch mAPIFetch;

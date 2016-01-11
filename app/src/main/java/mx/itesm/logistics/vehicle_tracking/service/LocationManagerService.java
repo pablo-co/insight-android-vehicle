@@ -22,7 +22,6 @@
 
 package mx.itesm.logistics.vehicle_tracking.service;
 
-import android.app.IntentService;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -37,17 +36,13 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.squareup.otto.Bus;
 
-import org.apache.http.Header;
-import org.json.JSONObject;
-
 import javax.inject.Inject;
 
-import edu.mit.lastmite.insight_library.http.APIFetch;
-import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.model.Route;
+import edu.mit.lastmite.insight_library.queue.NetworkTaskQueue;
 import edu.mit.lastmite.insight_library.service.DaggerIntentService;
-import edu.mit.lastmite.insight_library.service.DaggerService;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
+import mx.itesm.logistics.vehicle_tracking.task.CreateLocationTask;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
@@ -64,7 +59,10 @@ public class LocationManagerService extends DaggerIntentService implements Conne
     protected Bus mBus;
 
     @Inject
-    protected APIFetch mAPIFetch;
+    protected Lab mLab;
+
+    @Inject
+    protected VehicleNetworkTaskQueue mNetworkTaskQueue;
 
     protected GoogleApiClient mGoogleApiClient;
     protected edu.mit.lastmite.insight_library.model.Location mLastLocation;
@@ -121,13 +119,12 @@ public class LocationManagerService extends DaggerIntentService implements Conne
 
     @Override
     public void onLocationChanged(Location location) {
-        Route route = Lab.get(this).getRoute();
-        if (Lab.get(this).getVehicle().isEmpty() || route.isEmpty()) {
+        if (mLab.getVehicle().isEmpty()) {
             stopSelf();
         }
         boolean isFirstLocation = mLastLocation == null;
         edu.mit.lastmite.insight_library.model.Location aggregateLocation = new edu.mit.lastmite.insight_library.model.Location(location);
-        aggregateLocation.setRouteId(route.getId());
+        //aggregateLocation.setRouteId(route.getId());
         initLocation(aggregateLocation);
         if (!isFirstLocation) {
             saveLocation(aggregateLocation);
@@ -142,7 +139,7 @@ public class LocationManagerService extends DaggerIntentService implements Conne
             lastLocation.setLatitude(mLastLocation.getLatitude());
             lastLocation.setLongitude(mLastLocation.getLongitude());
 
-            android.location.Location newLocation  = new android.location.Location("");
+            android.location.Location newLocation = new android.location.Location("");
             newLocation.setLatitude(location.getLatitude());
             newLocation.setLongitude(location.getLongitude());
 
@@ -157,19 +154,13 @@ public class LocationManagerService extends DaggerIntentService implements Conne
     }
 
     protected void saveLocation(final edu.mit.lastmite.insight_library.model.Location location) {
-        mBus.post(location);
-        Log.d("LOCATION", location.buildParams().toString());
-        mAPIFetch.post("traces/postTrace", location.buildParams(), new APIResponseHandler(this, null, false) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onFinish(boolean success) {
-            }
-        });
+        if (location != null) {
+            mBus.post(location);
+            CreateLocationTask task = new CreateLocationTask(location);
+            mNetworkTaskQueue.add(task);
+        }
     }
+
 
     /**
      *

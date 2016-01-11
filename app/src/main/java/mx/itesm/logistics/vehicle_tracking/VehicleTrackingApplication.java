@@ -26,6 +26,7 @@ import edu.mit.lastmite.insight_library.BaseLibrary;
 import edu.mit.lastmite.insight_library.util.AppModule;
 import mx.itesm.logistics.vehicle_tracking.util.DaggerVehicleAppComponent;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
+import mx.itesm.logistics.vehicle_tracking.util.VehicleAppModule;
 
 
 public class VehicleTrackingApplication extends BaseLibrary {
@@ -34,10 +35,12 @@ public class VehicleTrackingApplication extends BaseLibrary {
     protected void createComponent() {
         mComponent = DaggerVehicleAppComponent.builder()
                 .appModule(new AppModule(this))
+                .vehicleAppModule(new VehicleAppModule(this))
                 .build();
         mComponent.inject(this);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public VehicleAppComponent getVehicleComponent() {
         return (VehicleAppComponent) getComponent();
     }

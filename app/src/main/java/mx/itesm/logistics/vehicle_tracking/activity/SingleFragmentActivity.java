@@ -28,10 +28,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
-
-import com.r0adkll.slidr.Slidr;
 
 import edu.mit.lastmite.insight_library.activity.DaggerActivity;
 import mx.itesm.logistics.vehicle_tracking.R;
@@ -65,7 +62,6 @@ public abstract class SingleFragmentActivity extends DaggerActivity {
 
         if (overrideTransitions) {
             overridePendingTransition(R.anim.activity_open_translate, R.anim.activity_close_scale);
-            Slidr.attach(this);
         }
     }
 

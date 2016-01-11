@@ -33,11 +33,18 @@ import mx.itesm.logistics.vehicle_tracking.fragment.DeliveryFormFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.LoginFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.TrackFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleListFragment;
+import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
 import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
+import mx.itesm.logistics.vehicle_tracking.service.VehicleNetworkQueueService;
+import mx.itesm.logistics.vehicle_tracking.task.CreateLocationTask;
+import mx.itesm.logistics.vehicle_tracking.task.CreateParkingTask;
 import mx.itesm.logistics.vehicle_tracking.task.CreateRouteTask;
+import mx.itesm.logistics.vehicle_tracking.task.CreateStopTask;
+import mx.itesm.logistics.vehicle_tracking.task.StopRouteTask;
+import mx.itesm.logistics.vehicle_tracking.task.StopStopTask;
 
 @Singleton
-@Component(modules = {AppModule.class})
+@Component(modules = {AppModule.class, VehicleAppModule.class})
 public interface VehicleAppComponent extends ApplicationComponent {
     void inject(MainActivity activity);
 
@@ -47,6 +54,8 @@ public interface VehicleAppComponent extends ApplicationComponent {
 
     void inject(LocationManagerService service);
 
+    void inject(VehicleNetworkQueueService service);
+
     void inject(LoginFragment fragment);
 
     void inject(DeliveryFormFragment fragment);
@@ -54,4 +63,14 @@ public interface VehicleAppComponent extends ApplicationComponent {
     void inject(VehicleListFragment fragment);
 
     void inject(CreateRouteTask task);
+
+    void inject(StopRouteTask task);
+
+    void inject(CreateLocationTask task);
+
+    void inject(CreateParkingTask task);
+
+    void inject(CreateStopTask task);
+
+    void inject(StopStopTask task);
 }

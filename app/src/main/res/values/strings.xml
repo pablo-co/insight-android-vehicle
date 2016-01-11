@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CartoKM2</string>
+    <string name="app_name">Vehicles</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Vehicle #ID</string>
@@ -39,18 +39,21 @@
     <string name="action_next">Next</string>
     <string name="action_done">Done</string>
     <string name="action_logout">Log out</string>
-    <string name="action_request">Request</string>
     <string name="action_add">Add</string>
-    <string name="action_accept">ACCEPT</string>
-    <string name="action_reject">REJECT</string>
-    <string name="action_cancel">CANCEL</string>
-    <string name="action_send">SEND</string>
+    <string name="action_cancel">cancel</string>
+    <string name="action_send">send</string>
     <string name="action_edit">Edit</string>
     <string name="action_destroy">Delete</string>
     <string name="action_back">Back</string>
     <string name="action_enter">Enter</string>
     <string name="action_skip">Skip</string>
     <string name="action_stop">Stop</string>
+    <string name="action_save">Save</string>
+
+    <!-- Track menu -->
+    <string name="menu_action_start_track">Start trip</string>
+    <string name="menu_action_start_load">Start loading</string>
+    <string name="menu_action_log_load">Log loading</string>
 
     <!-- Tracking -->
     <string name="track_distance_placeholder">0.00 km</string>
@@ -82,6 +85,19 @@
         <item>Parcel</item>
     </string-array>
 
+    <!-- States -->
+    <string name="state_idle">Idle</string>
+    <string name="state_starting">Waiting to start stip</string>
+    <string name="state_loading">Loading cargo</string>
+    <string name="state_waiting">Waiting for location</string>
+    <string name="state_tracking">Tracking route</string>
+    <string name="state_parking">Searking for parking</string>
+    <string name="state_delivering">Stopped</string>
+
     <!-- Errors -->
     <string name="error_logout">Error cerrando sesión.</string>
+
+    <!-- Log Load -->
+    <string name="dialog_log_load_title">Cargo loading</string>
+    <string name="dialog_log_load_hint">Minutes</string>
 </resources>

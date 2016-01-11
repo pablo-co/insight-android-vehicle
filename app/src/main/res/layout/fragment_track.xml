@@ -1,220 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<com.sothree.slidinguppanel.SlidingUpPanelLayout
+    android:id="@+id/track_slidingUpPanel"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:sothree="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:gravity="bottom"
+    sothree:umanoPanelHeight="48dp"
+    sothree:umanoShadowHeight="4dp">
 
-    <com.airbnb.android.airmapview.AirMapView
-        android:id="@+id/track_mapView"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/track_mapLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.github.clans.fab.FloatingActionMenu
+            android:id="@+id/track_actionsMenu"
+            fab:menu_animationDelayPerItem="0"
+            fab:menu_backgroundColor="#ccffffff"
+            fab:menu_labels_ellipsize="end"
+            fab:menu_labels_position="left"
+            fab:menu_labels_showShadow="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/track_logLoadButton"
+                fab:fab_label="@string/menu_action_log_load"
+                fab:fab_size="mini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_log"/>
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/track_startLoadButton"
+                fab:fab_label="@string/menu_action_start_load"
+                fab:fab_size="mini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_load"/>
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/track_startTrackButton"
+                fab:fab_label="@string/menu_action_start_track"
+                fab:fab_size="mini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_road"/>
+
+        </com.github.clans.fab.FloatingActionMenu>
+
+    </FrameLayout>
+
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/card">
+        android:background="@color/colorPrimaryLight">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <FrameLayout
+            <include
+                layout="@layout/track_status"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"/>
 
-                <FrameLayout
-                    android:id="@+id/track_overlayLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/black"/>
-
-                <LinearLayout
-                    android:id="@+id/track_actionLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@mipmap/ic_action_cancel"/>
-
-                    <com.rey.material.widget.TextView
-                        android:id="@+id/track_stateTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="24dp"
-                        android:layout_weight="1"
-                        android:text="Walking"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"/>
-
-                </LinearLayout>
-
-            </FrameLayout>
-
-            <com.rey.material.widget.Button
-                android:id="@+id/track_startButton"
+            <include
+                layout="@layout/track_stats"
                 android:layout_width="match_parent"
-                android:layout_height="128dp"
-                android:background="@color/card"
-                android:text="Start"
-                android:textAllCaps="true"
-                android:textColor="@color/white"
-                android:textSize="24dp"
-                app:rd_backgroundColor="@color/card"/>
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"/>
 
-            <com.rey.material.widget.TextView
-                android:id="@+id/track_timeTextView"
+            <include
+                layout="@layout/track_waiting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="24dp"
-                android:layout_marginTop="24dp"
-                android:text="00:00"
-                android:textColor="@color/white"
-                android:textSize="48dp"/>
+                android:layout_marginTop="24dp"/>
 
-            <com.rey.material.widget.Button
-                android:id="@+id/track_actionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="16dp"
-                app:fab_backgroundColor="@color/colorAccent"/>
+            <include
+                layout="@layout/track_start"
+                android:layout_width="match_parent"
+                android:layout_height="128dp"/>
 
-            <TableLayout
-                android:id="@+id/track_statsLayout"
+            <include
+                layout="@layout/track_stop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginRight="24dp"
-                android:orientation="horizontal">
-
-                <TableRow
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@mipmap/ic_distance"/>
-
-                    <com.rey.material.widget.TextView
-                        android:id="@+id/track_distanceTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:text="@string/track_distance_placeholder"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="@android:color/white"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@mipmap/ic_speed"/>
-
-                    <com.rey.material.widget.TextView
-                        android:id="@+id/track_speedTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:text="@string/track_speed_placeholder"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="@android:color/white"/>
-                </TableRow>
-
-                <TableRow
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical" />
-
-                    <com.rey.material.widget.TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="@android:color/white"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@mipmap/ic_average_speed"/>
-
-                    <com.rey.material.widget.TextView
-                        android:id="@+id/track_averageSpeedTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:text="@string/track_speed_placeholder"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="@android:color/white"/>
-                </TableRow>
-
-
-
-            </TableLayout>
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="8dp"/>
 
             <LinearLayout
-                android:id="@+id/track_trackingLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <FrameLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
 
-                    <com.rey.material.widget.Button
-                        android:id="@+id/track_deliveringButton"
+                    <include
+                        layout="@layout/track_parking"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|center_horizontal"
-                        android:layout_marginBottom="16dp"
-                        android:text="Delivering"
-                        app:fab_backgroundColor="@color/colorAccent"/>
+                        android:layout_gravity="center"
+                        android:layout_margin="8dp"/>
 
                 </FrameLayout>
 
                 <FrameLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
 
-                    <com.rey.material.widget.Button
-                        android:id="@+id/track_parkingButton"
+                    <include
+                        layout="@layout/track_delivering"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|center_horizontal"
-                        android:layout_marginBottom="16dp"
-                        android:text="Parking"
-                        app:fab_backgroundColor="@color/colorAccent"/>
+                        android:layout_gravity="center"
+                        android:layout_margin="8dp"/>
 
                 </FrameLayout>
 
@@ -224,4 +138,4 @@
 
     </FrameLayout>
 
-</LinearLayout>
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>

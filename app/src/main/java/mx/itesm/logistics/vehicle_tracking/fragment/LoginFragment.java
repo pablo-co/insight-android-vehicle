@@ -25,7 +25,6 @@ package mx.itesm.logistics.vehicle_tracking.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +43,7 @@ import javax.inject.Inject;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.fragment.FragmentResponder;
 import edu.mit.lastmite.insight_library.http.APIFetch;
@@ -53,20 +53,27 @@ import edu.mit.lastmite.insight_library.model.Session;
 import edu.mit.lastmite.insight_library.model.Vehicle;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.GcmRegistration;
-import edu.mit.lastmite.insight_library.util.Helper;
+import edu.mit.lastmite.insight_library.util.ServiceUtils;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
 
 public class LoginFragment extends FragmentResponder {
-
     private static final String TAG = "LoginFragment";
 
-    public static final String EXTRA_VEHICLE = "mx.itesm.cartokm2.extra_user";
+    @ServiceConstant
+    public static String EXTRA_VEHICLE;
+
+    static {
+        ServiceUtils.populateConstants(LoginFragment.class);
+    }
 
     @Inject
     protected APIFetch mAPIFetch;
+
+    @Inject
+    protected Lab mLab;
 
     @Bind(R.id.email_sign_in_button)
     protected CircularProgressButton mLoginButton;
@@ -171,7 +178,7 @@ public class LoginFragment extends FragmentResponder {
     }
 
     protected void loginSuccess(Vehicle vehicle) {
-        if (Lab.get(getActivity()).setVehicle(vehicle).saveVehicle()) {
+        if (mLab.setVehicle(vehicle).saveVehicle()) {
             sendResult(TargetListener.RESULT_OK, vehicle);
         } else {
             ErrorHandler.handleError(getActivity().getSupportFragmentManager(), -1, "Error");

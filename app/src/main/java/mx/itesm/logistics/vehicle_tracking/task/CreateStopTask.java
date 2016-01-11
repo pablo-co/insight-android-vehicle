@@ -26,26 +26,27 @@ import org.apache.http.Header;
 import org.json.JSONObject;
 
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.model.Route;
+import edu.mit.lastmite.insight_library.model.Stop;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
 import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-public class CreateRouteTask extends NetworkTask {
-    protected Route mRoute;
+public class CreateStopTask extends NetworkTask {
+    protected Stop mStop;
 
-    public CreateRouteTask(Route route) {
-        mRoute = route;
+    public CreateStopTask(Stop stop) {
+        mStop = stop;
     }
 
     @Override
     public void execute(Callback callback) {
         mCallback = callback;
-        mAPIFetch.post("routes/postRoute", mRoute.buildParams(), new APIResponseHandler(mApplication, null, false) {
+        updateStop();
+        mAPIFetch.post("stops/postInitialstop", mStop.buildParams(), new APIResponseHandler(mApplication, null, false) {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
-                    Route route = new Route(response);
-                    saveRouteId(route.getId());
+                    Stop stop = new Stop(response);
+                    saveStopId(stop.getId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -61,10 +62,18 @@ public class CreateRouteTask extends NetworkTask {
 
     @Override
     public Object getModel() {
-        return mRoute;
+        return mStop;
     }
 
-    protected void saveRouteId(long routeId) {
-        putGlobalLong(Preferences.PREFERENCES_ROUTE_ID, routeId);
+    protected void updateStop() {
+        mStop.setRouteId(getRouteId());
+    }
+
+    protected long getRouteId() {
+        return getGlobalLong(Preferences.PREFERENCES_ROUTE_ID);
+    }
+
+    protected void saveStopId(long stopId) {
+        putGlobalLong(Preferences.PREFERENCES_STOP_ID, stopId);
     }
 }
