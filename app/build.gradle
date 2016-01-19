@@ -40,6 +40,11 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:3.6.1'
     compile 'com.sothree.slidinguppanel:library:3.2.1'
     compile 'com.github.clans:fab:1.6.2'
+    compile 'com.ogaclejapan.arclayout:library:1.0.1@aar'
+
+    /* Save Instance State */
+    compile 'frankiesardo:icepick:3.1.0'
+    provided 'frankiesardo:icepick-processor:3.1.0'
 
     /* Geolocation & Maps */
     compile 'com.google.android.gms:play-services-gcm:8.4.0'

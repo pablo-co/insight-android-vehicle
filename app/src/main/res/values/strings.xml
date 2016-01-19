@@ -48,12 +48,15 @@
     <string name="action_enter">Enter</string>
     <string name="action_skip">Skip</string>
     <string name="action_stop">Stop</string>
+    <string name="action_pause">Pause</string>
     <string name="action_save">Save</string>
+    <string name="action_ok">Ok</string>
 
     <!-- Track menu -->
-    <string name="menu_action_start_track">Start trip</string>
-    <string name="menu_action_start_load">Start loading</string>
-    <string name="menu_action_log_load">Log loading</string>
+    <string name="menu_action_start_track">Leaving DC</string>
+    <string name="menu_action_start_load">Loading at DC</string>
+    <string name="menu_action_start_transshipment">Loading at Transshipment</string>
+    <string name="menu_action_log_load">Forgot to track loading</string>
 
     <!-- Tracking -->
     <string name="track_distance_placeholder">0.00 km</string>
@@ -88,10 +91,12 @@
     <!-- States -->
     <string name="state_idle">Idle</string>
     <string name="state_starting">Waiting to start stip</string>
+    <string name="state_paused">Tracking paused</string>
     <string name="state_loading">Loading cargo</string>
     <string name="state_waiting">Waiting for location</string>
     <string name="state_tracking">Tracking route</string>
-    <string name="state_parking">Searking for parking</string>
+    <string name="state_transshipping">Transhipping</string>
+    <string name="state_parking">Searching for parking</string>
     <string name="state_delivering">Stopped</string>
 
     <!-- Errors -->
@@ -100,4 +105,14 @@
     <!-- Log Load -->
     <string name="dialog_log_load_title">Cargo loading</string>
     <string name="dialog_log_load_hint">Minutes</string>
+
+    <!-- Dialog -->
+    <string name="dialog_stop_title">Are you sure?</string>
+    <string name="dialog_stop_message">You are about to stop a trip.</string>
+
+    <string name="dialog_pause_title">Are you sure?</string>
+    <string name="dialog_pause_message">You are about to pause all tracking.</string>
+
+    <string name="dialog_logout_title">Are you sure?</string>
+    <string name="dialog_logout_message">You are about to logout the vehicle out.</string>
 </resources>

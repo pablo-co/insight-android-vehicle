@@ -38,7 +38,7 @@ import javax.inject.Inject;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.Helper;
 import mx.itesm.logistics.vehicle_tracking.R;
-import mx.itesm.logistics.vehicle_tracking.fragment.TrackFragment;
+import mx.itesm.logistics.vehicle_tracking.fragment.VehicleTrackFragment;
 import mx.itesm.logistics.vehicle_tracking.receiver.LocationReceiver;
 import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
@@ -55,7 +55,7 @@ public class MainActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment() {
-        TrackFragment fragment = new TrackFragment();
+        VehicleTrackFragment fragment = new VehicleTrackFragment();
         return fragment;
     }
 

@@ -116,7 +116,7 @@ public class LoginFragment extends FragmentResponder {
     }
 
     protected void updateVehicle() {
-        mVehicle.setPlates(mEmailEditText.getText().toString());
+        mVehicle.setIdentifier(mEmailEditText.getText().toString());
         mVehicle.setPassword(mPasswordEditText.getText().toString());
     }
 

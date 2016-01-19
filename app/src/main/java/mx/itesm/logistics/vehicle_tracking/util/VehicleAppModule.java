@@ -11,6 +11,8 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import edu.mit.lastmite.insight_library.model.Vehicle;
+import edu.mit.lastmite.insight_library.queue.NetworkTaskQueue;
+import edu.mit.lastmite.insight_library.util.Storage;
 import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
 
 @Module
@@ -29,8 +31,14 @@ public class VehicleAppModule {
 
     @Provides
     @Singleton
-    Api provideApi(Application application, Lab lab) {
-        return new Api(application, lab);
+    Api provideApi(Application application, Lab lab, Storage storage) {
+        return new Api(application, lab, storage);
+    }
+
+    @Provides
+    @Singleton
+    LocationUploader provideLocationUploader(Bus bus, VehicleNetworkTaskQueue queue) {
+        return new LocationUploader(bus, queue);
     }
 
     @Provides

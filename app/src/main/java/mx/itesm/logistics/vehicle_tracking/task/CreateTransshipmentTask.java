@@ -24,25 +24,39 @@ package mx.itesm.logistics.vehicle_tracking.task;
 
 import android.util.Log;
 
+import org.apache.http.Header;
+import org.json.JSONObject;
+
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.model.Location;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
+import mx.itesm.logistics.vehicle_tracking.model.Transshipment;
 import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-public class CreateLocationTask extends NetworkTask {
-    protected Location mLocation;
+public class CreateTransshipmentTask extends NetworkTask {
+    protected Transshipment mTransshipment;
 
-    public CreateLocationTask(Location location) {
-        mLocation = location;
+    public CreateTransshipmentTask(Transshipment transshipment) {
+        mTransshipment = transshipment;
     }
 
     @Override
     public void execute(Callback callback) {
         mCallback = callback;
-        updateLocation();
-        saveLocation(mLocation.getLatitude(), mLocation.getLongitude());
-        Log.d("CREATELOCATION", mLocation.buildParams().toString());
-        mAPIFetch.post("traces/postTrace", mLocation.buildParams(), new APIResponseHandler(mApplication, null, false) {
+        updateTransshipment();
+
+        Log.d("CREATEtrans", mTransshipment.buildParams().toString());
+        mAPIFetch.post("transshipments/postTransshipment", mTransshipment.buildParams(), new APIResponseHandler(mApplication, null, false) {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                try {
+                    Transshipment transshipment = new Transshipment(response);
+                    saveTransshipmentId(transshipment.getId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                super.onSuccess(statusCode, headers, response);
+            }
+
             @Override
             public void onFinish(boolean success) {
                 activateCallback(success);
@@ -52,19 +66,18 @@ public class CreateLocationTask extends NetworkTask {
 
     @Override
     public Object getModel() {
-        return mLocation;
+        return mTransshipment;
     }
 
-    protected void updateLocation() {
-        mLocation.setRouteId(getRouteId());
+    protected void updateTransshipment() {
+        mTransshipment.setRouteId(getRouteId());
     }
 
     protected long getRouteId() {
         return getGlobalLong(Preferences.PREFERENCES_ROUTE_ID);
     }
 
-    protected void saveLocation(double latitude, double longitude) {
-        putGlobalFloat(Preferences.PREFERENCES_LATITUDE, (float) latitude);
-        putGlobalFloat(Preferences.PREFERENCES_LONGITUDE, (float) longitude);
+    protected void saveTransshipmentId(long transshipmentId) {
+        putGlobalLong(Preferences.PREFERENCES_TRANSSHIPMENT_ID, transshipmentId);
     }
 }

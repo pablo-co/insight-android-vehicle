@@ -27,21 +27,26 @@ import android.content.Intent;
 
 import javax.inject.Inject;
 
+import edu.mit.lastmite.insight_library.util.Storage;
 import mx.itesm.logistics.vehicle_tracking.activity.LoginActivity;
 
 public class Api {
     protected Lab mLab;
     protected Context mAppContext;
+    protected Storage mStorage;
 
-    public Api(Context appContext, Lab lab) {
+    public Api(Context appContext, Lab lab, Storage storage) {
         mAppContext = appContext;
         mLab = lab;
+        mStorage = storage;
     }
 
     public void logout() {
         mLab.deleteVehicle();
+        mStorage.clear();
         Intent intent = new Intent(mAppContext, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         mAppContext.startActivity(intent);
+
     }
 }

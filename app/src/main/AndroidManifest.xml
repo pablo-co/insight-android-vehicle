@@ -47,13 +47,9 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".receiver.LocationReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.gruporaido.tasker.ACTION_LOCATION"/>
-            </intent-filter>
-        </receiver>
+
+        <activity
+            android:name=".activity.MainActivity" />
 
         <service android:name=".service.LocationManagerService">
             <intent-filter>
@@ -61,13 +57,13 @@
             </intent-filter>
         </service>
 
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:theme="@style/AppTheme"/>
+
         <service android:name=".service.VehicleNetworkQueueService" />
 
-        <activity
-            android:name=".activity.MainActivity"
-            android:configChanges="orientation"
-            android:label="Main"
-            android:screenOrientation="portrait"/>
+        <service android:name="edu.mit.lastmite.insight_library.service.TimerService" />
 
     </application>
 

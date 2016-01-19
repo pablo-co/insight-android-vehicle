@@ -52,16 +52,16 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
     }
 
     @Override
+    public void injectActivity(ApplicationComponent component) {
+        ((VehicleAppComponent) component).inject(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (!mLab.getVehicle().isEmpty()) {
             launchMainActivity();
         }
-    }
-
-    @Override
-    public void injectActivity(ApplicationComponent component) {
-        ((VehicleAppComponent) component).inject(this);
     }
 
     @Override

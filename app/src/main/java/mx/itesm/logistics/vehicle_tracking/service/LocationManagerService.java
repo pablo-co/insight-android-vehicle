@@ -41,9 +41,11 @@ import javax.inject.Inject;
 import edu.mit.lastmite.insight_library.queue.NetworkTaskQueue;
 import edu.mit.lastmite.insight_library.service.DaggerIntentService;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import edu.mit.lastmite.insight_library.util.Storage;
 import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
 import mx.itesm.logistics.vehicle_tracking.task.CreateLocationTask;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
+import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
 public class LocationManagerService extends DaggerIntentService implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -63,6 +65,9 @@ public class LocationManagerService extends DaggerIntentService implements Conne
 
     @Inject
     protected VehicleNetworkTaskQueue mNetworkTaskQueue;
+
+    @Inject
+    protected Storage mStorage;
 
     protected GoogleApiClient mGoogleApiClient;
     protected edu.mit.lastmite.insight_library.model.Location mLastLocation;
@@ -156,8 +161,6 @@ public class LocationManagerService extends DaggerIntentService implements Conne
     protected void saveLocation(final edu.mit.lastmite.insight_library.model.Location location) {
         if (location != null) {
             mBus.post(location);
-            CreateLocationTask task = new CreateLocationTask(location);
-            mNetworkTaskQueue.add(task);
         }
     }
 
@@ -185,13 +188,31 @@ public class LocationManagerService extends DaggerIntentService implements Conne
      */
     protected LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
-        int interval = LOCATION_REQUEST_INTERVAL_ACTIVE;
-        int maxInterval = LOCATION_REQUEST_MAX_INTERVAL_ACTIVE;
+        int interval = getFrequency();
+        int maxInterval = getMaxFrequency();
         int priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
         locationRequest.setInterval(interval);
         locationRequest.setFastestInterval(maxInterval);
         locationRequest.setPriority(priority);
         return locationRequest;
+    }
+
+    protected int getFrequency() {
+        String frequencyStr = mStorage.getGlobalString(Preferences.PREFERENCES_GPS_FREQUENCY);
+        int frequency = LOCATION_REQUEST_INTERVAL_ACTIVE;;
+        if (frequencyStr != null && !frequencyStr.equals("null")) {
+            frequency = Integer.valueOf(frequencyStr);
+        }
+        return frequency;
+    }
+
+    protected int getMaxFrequency() {
+        String frequencyStr = mStorage.getGlobalString(Preferences.PREFERENCES_GPS_FREQUENCY);
+        int maxFrequency = LOCATION_REQUEST_MAX_INTERVAL_ACTIVE;;
+        if (frequencyStr != null && !frequencyStr.equals("null")) {
+            maxFrequency = Integer.valueOf(frequencyStr);
+        }
+        return maxFrequency;
     }
 
     /**

@@ -188,7 +188,7 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
             Vehicle vehicle = getItem(position);
 
             TextView numberTextView = (TextView) convertView.findViewById(R.id.item_vehicle_identifierTextView);
-            numberTextView.setText(vehicle.getPlates());
+            numberTextView.setText(vehicle.getIdentifier());
 
             return convertView;
         }

@@ -22,6 +22,8 @@
 
 package mx.itesm.logistics.vehicle_tracking.task;
 
+import android.util.Log;
+
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
 import edu.mit.lastmite.insight_library.model.Route;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
