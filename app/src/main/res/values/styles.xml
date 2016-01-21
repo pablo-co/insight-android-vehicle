@@ -6,11 +6,14 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
     <style name="dividedListStyle" parent="@android:style/Widget.ListView">
@@ -47,7 +50,7 @@
     </style>
 
 
-    <style  name="LightEditText"  parent="Material.Widget.EditText.Light">
+    <style name="LightEditText" parent="Material.Widget.EditText.Light">
         <item name="android:textAppearance">@style/Base.TextAppearance.AppCompat.Body1</item>
         <item name="android:textColor">@color/normal</item>
         <item name="android:textColorHint">@color/inactive</item>
@@ -62,4 +65,14 @@
         <item name="et_supportMode">helper</item>
     </style>
 
+    <style name="TextAppearance" parent="android:TextAppearance.DeviceDefault">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/white_pressed</item>
+    </style>
+
+    <style name="TextAppearance.OverlayText">
+        <item name="android:textSize">24dp</item>
+        <item name="android:textColor">#FFF</item>
+    </style>
 </resources>

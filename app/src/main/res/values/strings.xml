@@ -10,9 +10,6 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
 
     <string name="started">Started:</string>
     <string name="latitude">Latitude:</string>
@@ -32,30 +29,12 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="vehicle_identifier">Identificador</string>
-
-    <!-- Actions -->
-    <string name="action_register">Register</string>
-    <string name="action_next">Next</string>
-    <string name="action_done">Done</string>
-    <string name="action_logout">Log out</string>
-    <string name="action_add">Add</string>
-    <string name="action_cancel">cancel</string>
-    <string name="action_send">send</string>
-    <string name="action_edit">Edit</string>
-    <string name="action_destroy">Delete</string>
-    <string name="action_back">Back</string>
-    <string name="action_enter">Enter</string>
-    <string name="action_skip">Skip</string>
-    <string name="action_stop">Stop</string>
-    <string name="action_pause">Pause</string>
-    <string name="action_save">Save</string>
-    <string name="action_ok">Ok</string>
+    <string name="vehicle_identifier">Identifier</string>
 
     <!-- Track menu -->
     <string name="menu_action_start_track">Leaving DC</string>
     <string name="menu_action_start_load">Loading at DC</string>
-    <string name="menu_action_start_transshipment">Loading at Transshipment</string>
+    <string name="menu_action_start_transshipment">Loading at Transshipment point</string>
     <string name="menu_action_log_load">Forgot to track loading</string>
 
     <!-- Tracking -->
@@ -76,7 +55,6 @@
     <string name="empty_shops">No shops</string>
 
     <!-- Delivery -->
-
     <string-array name="delivery_types_array">
         <item>Delivery</item>
         <item>Pickup</item>
@@ -90,29 +68,40 @@
 
     <!-- States -->
     <string name="state_idle">Idle</string>
-    <string name="state_starting">Waiting to start stip</string>
+    <string name="state_starting">Waiting to start trip</string>
     <string name="state_paused">Tracking paused</string>
     <string name="state_loading">Loading cargo</string>
     <string name="state_waiting">Waiting for location</string>
     <string name="state_tracking">Tracking route</string>
-    <string name="state_transshipping">Transhipping</string>
+    <string name="state_transshipping">Transshipping</string>
     <string name="state_parking">Searching for parking</string>
     <string name="state_delivering">Stopped</string>
 
+    <!-- State actions -->
+    <string name="state_idle_action">Idle</string>
+    <string name="state_starting_action">Start trip</string>
+    <string name="state_paused_action">Pause</string>
+    <string name="state_loading_action">Load cargo</string>
+    <string name="state_waiting_action">Waiting for location</string>
+    <string name="state_tracking_action">Back to trip</string>
+    <string name="state_transshipping_action">At Transshipment point</string>
+    <string name="state_parking_action">Searching for parking</string>
+    <string name="state_delivering_action">Delivered</string>
+
+    <string name="state_dc">At DC</string>
+    <string name="state_trans">At Transshipment point</string>
+
     <!-- Errors -->
-    <string name="error_logout">Error cerrando sesión.</string>
+    <string name="error_logout">Logging out</string>
 
     <!-- Log Load -->
-    <string name="dialog_log_load_title">Cargo loading</string>
+    <string name="dialog_log_load_title">Loading cargo</string>
     <string name="dialog_log_load_hint">Minutes</string>
 
     <!-- Dialog -->
     <string name="dialog_stop_title">Are you sure?</string>
     <string name="dialog_stop_message">You are about to stop a trip.</string>
 
-    <string name="dialog_pause_title">Are you sure?</string>
-    <string name="dialog_pause_message">You are about to pause all tracking.</string>
-
     <string name="dialog_logout_title">Are you sure?</string>
-    <string name="dialog_logout_message">You are about to logout the vehicle out.</string>
+    <string name="dialog_logout_message">You are about to logout the vehicle.</string>
 </resources>

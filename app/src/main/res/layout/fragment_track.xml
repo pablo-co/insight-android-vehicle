@@ -16,61 +16,9 @@
         sothree:umanoShadowHeight="4dp">
 
         <FrameLayout
+            android:id="@+id/track_mapLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <FrameLayout
-                android:id="@+id/track_mapLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-            <com.github.clans.fab.FloatingActionMenu
-                android:id="@+id/track_actionsMenu"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                fab:menu_animationDelayPerItem="0"
-                fab:menu_backgroundColor="#ccffffff"
-                fab:menu_labels_ellipsize="end"
-                fab:menu_labels_position="right"
-                fab:menu_labels_showShadow="true">
-
-                <com.github.clans.fab.FloatingActionButton
-                    android:id="@+id/track_logLoadButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_log"
-                    fab:fab_label="@string/menu_action_log_load"
-                    fab:fab_size="mini"/>
-
-                <com.github.clans.fab.FloatingActionButton
-                    android:id="@+id/track_startLoadButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_load"
-                    fab:fab_label="@string/menu_action_start_load"
-                    fab:fab_size="mini"/>
-
-
-                <com.github.clans.fab.FloatingActionButton
-                    android:id="@+id/track_startTransButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_transship"
-                    fab:fab_label="@string/menu_action_start_transshipment"
-                    fab:fab_size="mini"/>
-
-                <com.github.clans.fab.FloatingActionButton
-                    android:id="@+id/track_startTrackButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_road"
-                    fab:fab_label="@string/menu_action_start_track"
-                    fab:fab_size="mini"/>
-
-            </com.github.clans.fab.FloatingActionMenu>
-
-        </FrameLayout>
-
+            android:layout_height="match_parent"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -123,11 +71,28 @@
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
     <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            layout="@layout/include_overlay_dc"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <include
+            layout="@layout/include_overlay_trans"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </FrameLayout>
+
+    <FrameLayout
         android:id="@+id/track_actionsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <include
+            android:id="@+id/track_stopLayout"
             layout="@layout/track_stop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -139,6 +104,38 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/track_dcLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="1">
+
+                <include
+                    layout="@layout/track_dc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"/>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/track_transLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="1">
+
+                <include
+                    layout="@layout/track_trans"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"/>
+
+            </FrameLayout>
 
             <FrameLayout
                 android:id="@+id/track_parkingLayout"
@@ -168,22 +165,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_horizontal"
+                    fab:menu_icon="@mipmap/ic_truck_speed"
                     fab:menu_animationDelayPerItem="0"
-                    fab:menu_colorNormal="@android:color/white">
+                    fab:menu_colorNormal="@android:color/white"
+                    fab:menu_labels_ellipsize="end"
+                    fab:menu_labels_position="left"
+                    fab:menu_labels_showShadow="true">
 
                     <com.github.clans.fab.FloatingActionButton
                         android:id="@+id/track_deliveringButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@mipmap/ic_truck_clock"
-                        fab:fab_colorNormal="@android:color/white"/>
+                        fab:fab_colorNormal="@android:color/white"
+                        fab:fab_label="@string/state_delivering_action"/>
 
                     <com.github.clans.fab.FloatingActionButton
                         android:id="@+id/track_unloadingTransshipmentButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@mipmap/ic_load"
-                        fab:fab_colorNormal="@android:color/white"/>
+                        fab:fab_colorNormal="@android:color/white"
+                        fab:fab_label="@string/state_transshipping_action"/>
 
                 </com.github.clans.fab.FloatingActionMenu>
 

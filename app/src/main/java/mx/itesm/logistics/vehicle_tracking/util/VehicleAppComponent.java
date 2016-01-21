@@ -34,6 +34,7 @@ import mx.itesm.logistics.vehicle_tracking.fragment.DeliveryFormFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.LoginFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleTrackFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleListFragment;
+import mx.itesm.logistics.vehicle_tracking.preferences.LogoutDialogPreference;
 import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
 import mx.itesm.logistics.vehicle_tracking.service.VehicleNetworkQueueService;
 import mx.itesm.logistics.vehicle_tracking.task.CreateLocationTask;
@@ -75,4 +76,6 @@ public interface VehicleAppComponent extends ApplicationComponent {
     void inject(CreateStopTask task);
 
     void inject(StopStopTask task);
+
+    void inject(LogoutDialogPreference preference);
 }

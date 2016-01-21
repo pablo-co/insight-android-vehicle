@@ -1,0 +1,144 @@
+<mx.itesm.logistics.vehicle_tracking.view.DCOverlayMenuView
+    android:id="@+id/overlay_dc"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/overlay_dc_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_70"
+        android:clickable="true"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/overlay_dc_home_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/light_blue_oval_ripple"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_storage_24dp"/>
+
+            <TextView
+                android:id="@+id/overlay_dc_home_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:gravity="center_horizontal"
+                android:singleLine="true"
+                android:text="@string/state_dc"
+                android:textColor="@color/white_70"
+                android:textSize="@dimen/text_size_medium"/>
+
+        </LinearLayout>
+
+        <com.ogaclejapan.arclayout.ArcLayout
+            android:id="@+id/overlay_dc_menu_actions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="@dimen/spacing_small"
+            android:layout_marginRight="@dimen/spacing_small"
+            app:arc_axisRadius="@dimen/article_menu_arc_axis_radius"
+            app:arc_origin="center"
+            app:arc_radius="@dimen/article_menu_arc_layout_radius"
+            app:arc_reverseAngle="true">
+
+            <LinearLayout
+                android:id="@+id/overlay_dc_load_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/overlay_dc_load_button"
+                    android:layout_width="@dimen/article_menu_action_button_size"
+                    android:layout_height="@dimen/article_menu_action_button_size"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/light_blue_oval_ripple"
+                    android:src="@mipmap/ic_load"/>
+
+                <TextView
+                    android:id="@+id/overlay_dc_load_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="@dimen/text_size_small"
+                    android:text="@string/menu_action_start_load"
+                    android:textAlignment="center"
+                    android:textColor="@color/white_70"
+                    android:textSize="@dimen/text_size_small"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/overlay_dc_log_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/overlay_dc_log_button"
+                    android:layout_width="@dimen/article_menu_action_button_size"
+                    android:layout_height="@dimen/article_menu_action_button_size"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/light_blue_oval_ripple"
+                    android:src="@mipmap/ic_log"/>
+
+                <TextView
+                    android:id="@+id/overlay_dc_log_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="@dimen/text_size_small"
+                    android:text="@string/menu_action_log_load"
+                    android:textAlignment="center"
+                    android:textColor="@color/white_70"
+                    android:textSize="@dimen/text_size_small"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/overlay_dc_track_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/overlay_dc_track_button"
+                    android:layout_width="@dimen/article_menu_action_button_size"
+                    android:layout_height="@dimen/article_menu_action_button_size"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/light_blue_oval_ripple"
+                    android:src="@mipmap/ic_road"/>
+
+                <TextView
+                    android:id="@+id/overlay_dc_track_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="@dimen/text_size_small"
+                    android:text="@string/menu_action_start_track"
+                    android:textAlignment="center"
+                    android:textColor="@color/white_70"
+                    android:textSize="@dimen/text_size_small"/>
+
+            </LinearLayout>
+
+        </com.ogaclejapan.arclayout.ArcLayout>
+
+    </RelativeLayout>
+
+</mx.itesm.logistics.vehicle_tracking.view.DCOverlayMenuView>

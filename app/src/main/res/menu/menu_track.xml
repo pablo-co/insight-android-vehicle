@@ -15,7 +15,7 @@
 
     <item
         android:id="@+id/track_menu_item_settings"
-        android:icon="@mipmap/ic_logout"
+        android:icon="@mipmap/ic_gear"
         android:title="@string/action_logout"
         app:showAsAction="always"/>
 </menu>

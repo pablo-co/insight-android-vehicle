@@ -106,5 +106,4 @@ public abstract class SingleFragmentActivity extends DaggerActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

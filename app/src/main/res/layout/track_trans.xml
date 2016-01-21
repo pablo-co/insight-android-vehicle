@@ -12,16 +12,14 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="@dimen/label_margin"
-        android:text="@string/action_done"/>
+        android:text="@string/state_trans"/>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/track_stopButton"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/track_transButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/ic_truck_speed"
         android:layout_gravity="center_horizontal"
+        android:src="@mipmap/ic_transship"
         app:backgroundTint="@android:color/white"/>
 
 </LinearLayout>

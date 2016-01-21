@@ -39,10 +39,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.clans.fab.FloatingActionMenu;
+import com.github.clans.fab.Label;
 import com.rey.material.app.SimpleDialog;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
@@ -59,6 +61,8 @@ import edu.mit.lastmite.insight_library.model.Route;
 import edu.mit.lastmite.insight_library.model.Stop;
 import edu.mit.lastmite.insight_library.service.TimerService;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import edu.mit.lastmite.insight_library.util.ColorTransformation;
+import edu.mit.lastmite.insight_library.util.Storage;
 import icepick.Icepick;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.activity.SettingsActivity;
@@ -75,7 +79,10 @@ import mx.itesm.logistics.vehicle_tracking.task.StopTransshipmentTask;
 import mx.itesm.logistics.vehicle_tracking.util.Api;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.LocationUploader;
+import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
+import mx.itesm.logistics.vehicle_tracking.view.DCOverlayMenuView;
+import mx.itesm.logistics.vehicle_tracking.view.TransOverlayMenuView;
 
 public class VehicleTrackFragment extends TrackFragment implements TargetListener {
     public static final int REQUEST_DURATION = 0;
@@ -109,6 +116,9 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     @Inject
     protected transient LocationUploader mLocationUploader;
+
+    @Inject
+    protected transient Storage mStorage;
 
     @icepick.State
     protected Route mRoute;
@@ -161,17 +171,43 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     @Bind(R.id.track_unloadingTransshipmentButton)
     protected com.github.clans.fab.FloatingActionButton mTransshipmentButton;
 
+
+    /**
+     * Stop
+     */
+
+    @Bind(R.id.track_stopLayout)
+    protected View mStopLayout;
+
     @Bind(R.id.track_stopButton)
     protected FloatingActionButton mStopButton;
 
-    @Bind(R.id.track_actionsMenu)
-    protected FloatingActionMenu mFloatingActionMenu;
 
     /**
-     * Pause
+     * DC
      */
-    @Bind(R.id.track_pausedTextView)
-    protected TextView mPausedTextView;
+
+    @Bind(R.id.overlay_dc)
+    protected DCOverlayMenuView mDCOverlayMenuView;
+
+    @Bind(R.id.track_dcButton)
+    protected FloatingActionButton mDCButton;
+
+    @Bind(R.id.track_dcLayout)
+    protected FrameLayout mDCLayout;
+
+    /**
+     * Trans
+     */
+
+    @Bind(R.id.overlay_trans)
+    protected TransOverlayMenuView mTransOverlayMenuView;
+
+    @Bind(R.id.track_transButton)
+    protected FloatingActionButton mTransButton;
+
+    @Bind(R.id.track_transLayout)
+    protected FrameLayout mTransLayout;
 
     /**
      * Layouts
@@ -231,9 +267,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         updatePanelShowingStatus();
         inflateMapsFragment(R.id.track_mapLayout);
         mSlidingUpPanel.setTouchEnabled(false);
+        mDCOverlayMenuView.setToggle(mDCButton);
+        mTransOverlayMenuView.setToggle(mTransButton);
         renderViewState((TrackState) mState);
-        registerPaneListener();
         updateActionButtonColors();
+        registerPaneListener();
+        applyLabelsSettings();
     }
 
     @Override
@@ -248,6 +287,18 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
         super.onCreateOptionsMenu(menu, menuInflater);
         menuInflater.inflate(R.menu.menu_track, menu);
+    }
+
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem cancelItem = menu.findItem(R.id.track_menu_item_pause);
+        MenuItem stopItem = menu.findItem(R.id.track_menu_item_stop);
+
+        boolean actionsVisible = mState == TrackState.TRACKING;
+        cancelItem.setVisible(actionsVisible);
+        stopItem.setVisible(actionsVisible);
     }
 
     @Override
@@ -279,7 +330,6 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
                 startStarting();
         }
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -344,10 +394,9 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         switch ((TrackState) mState) {
             case LOADING_TRANSSHIPMENT:
                 saveEndTime();
-                sendStartRoute();
                 sendStartTransshipment();
                 sendStopTransshipment();
-                startTracking();
+                startNewTrip();
                 break;
             case UNLOADING_TRANSSHIPMENT:
                 saveEndTime();
@@ -359,7 +408,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
                 break;
             case LOADING:
                 saveEndTime();
-                startTracking();
+                startNewTrip();
                 break;
             case DELIVERING:
                 sendStopDelivering();
@@ -369,55 +418,6 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         }
     }
 
-    /**
-     * Menu buttons
-     */
-
-    @SuppressWarnings("UnusedDeclaration")
-    @OnClick(R.id.track_startTrackButton)
-    protected void onStartTrackClicked() {
-        waitForLocation(new WaitForLocationCallback() {
-            @Override
-            public void onReceivedLocation(Location location) {
-                sendStartRoute();
-                startTracking();
-            }
-        });
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    @OnClick(R.id.track_startLoadButton)
-    protected void onStartLoadClicked() {
-        startLoading();
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    @OnClick(R.id.track_logLoadButton)
-    protected void onLogLoadClicked() {
-        LogLoadDialogFragment fragment = LogLoadDialogFragment.newInstance(getContext());
-        fragment.setTargetListener(this, REQUEST_DURATION);
-        fragment.show(getActivity().getSupportFragmentManager(), null);
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    @OnClick(R.id.track_startTransButton)
-    protected void onStartTransshippingClicked() {
-        saveStartTime();
-        if (mState == TrackState.IDLE) {
-            if (mLastLocation == null) {
-                waitForLocation(new WaitForLocationCallback() {
-                    @Override
-                    public void onReceivedLocation(Location location) {
-                        startLoadingTransshipment();
-                    }
-                });
-            } else {
-                startLoadingTransshipment();
-            }
-        } else {
-            startUnloadingTransshipment();
-        }
-    }
 
     /**
      * Delivering menu
@@ -444,6 +444,71 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         updateStats(location);
         mLastLocation = location;
         checkIfWaitingForLocation(location);
+    }
+
+    /**
+     * DC Overlay
+     */
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.overlay_dc_load_button)
+    public void onLoadClicked() {
+        mDCOverlayMenuView.toggle();
+        saveStartTime();
+        startLoading();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.overlay_dc_log_button)
+    public void onLogClicked() {
+        mDCOverlayMenuView.toggle();
+        LogLoadDialogFragment fragment = LogLoadDialogFragment.newInstance(getContext());
+        fragment.setTargetListener(this, REQUEST_DURATION);
+        fragment.show(getActivity().getSupportFragmentManager(), null);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.overlay_dc_track_button)
+    public void onTrackClicked() {
+        mDCOverlayMenuView.toggle();
+        waitForLocation(new WaitForLocationCallback() {
+            @Override
+            public void onReceivedLocation(Location location) {
+                startNewTrip();
+            }
+        });
+    }
+
+    /**
+     * Transshipment Overlay
+     */
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.overlay_trans_load_button)
+    public void onTransLoadClicked() {
+        mTransOverlayMenuView.toggle();
+        if (mLastLocation == null) {
+            waitForLocation(new WaitForLocationCallback() {
+                @Override
+                public void onReceivedLocation(Location location) {
+                    startLoadingTransshipment();
+                }
+            });
+        } else {
+            startLoadingTransshipment();
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @OnClick(R.id.overlay_trans_track_button)
+    public void onTransTrackClicked() {
+        mTransOverlayMenuView.toggle();
+        waitForLocation(new WaitForLocationCallback() {
+            @Override
+            public void onReceivedLocation(Location location) {
+                startNewTrip();
+            }
+        });
     }
 
     /**
@@ -572,6 +637,16 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         }
     }
 
+    protected void startNewTrip() {
+        sendStartRoute();
+        startTracking();
+        resetMap();
+    }
+
+    protected void resetMap() {
+        mBus.post(new ClearMapEvent());
+    }
+
     protected void saveStartTime() {
         mLoadingStartTime = System.currentTimeMillis();
     }
@@ -637,8 +712,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void showIdleViews() {
-        updatePanelShowingStatus();
-        hidePanel();
+        updatePanelShowingButtons();
         hideAllViews();
         showIdleView();
     }
@@ -842,13 +916,16 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         super.hideAllViews();
         mDeliveringLayout.setVisibility(View.GONE);
         mParkingLayout.setVisibility(View.GONE);
-        mStopButton.setVisibility(View.GONE);
-        mFloatingActionMenu.setVisibility(View.GONE);
+        mStopLayout.setVisibility(View.GONE);
         mPausedTextView.setVisibility(View.GONE);
+        mDCLayout.setVisibility(View.GONE);
+        mTransLayout.setVisibility(View.GONE);
     }
 
     protected void showIdleView() {
-        mFloatingActionMenu.setVisibility(View.VISIBLE);
+        mDCLayout.setVisibility(View.VISIBLE);
+        mTransLayout.setVisibility(View.VISIBLE);
+        showPanel();
     }
 
 
@@ -865,12 +942,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     protected void showPausedView() {
         mPausedTextView.setVisibility(View.VISIBLE);
-        mStopButton.setVisibility(View.VISIBLE);
+        mStopLayout.setVisibility(View.VISIBLE);
     }
 
     protected void showLoadingView() {
         mTimeTextView.setVisibility(View.VISIBLE);
-        mStopButton.setVisibility(View.VISIBLE);
+        mStopLayout.setVisibility(View.VISIBLE);
         showPanel();
     }
 
@@ -889,14 +966,22 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     protected void showDeliveringView() {
         mTimeTextView.setVisibility(View.VISIBLE);
-        mStopButton.setVisibility(View.VISIBLE);
+        mStopLayout.setVisibility(View.VISIBLE);
     }
 
     protected void showTransshippingView() {
         mTimeTextView.setVisibility(View.VISIBLE);
-        mStopButton.setVisibility(View.VISIBLE);
+        mStopLayout.setVisibility(View.VISIBLE);
         startTimer();
         showPanel();
+    }
+
+    @Override
+    public void goToState(State state) {
+        super.goToState(state);
+        if (mState == TrackState.TRACKING || mLastState == TrackState.TRACKING) {
+            getActivity().supportInvalidateOptionsMenu();
+        }
     }
 
     @Override
@@ -940,6 +1025,17 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         changeDrawableColor(R.mipmap.ic_parking, PANEL_COLOR, mParkingButton);
         changeDrawableColor(R.mipmap.ic_truck_clock, PANEL_COLOR, mDeliveringButton);
         changeDrawableColor(R.mipmap.ic_load, PANEL_COLOR, mTransshipmentButton);
+        changeDrawableColor(R.mipmap.ic_storage, PANEL_COLOR, mDCButton);
+        changeDrawableColor(R.mipmap.ic_transship, PANEL_COLOR, mTransButton);
+        changeDrawableColor(R.mipmap.ic_truck_speed, PANEL_COLOR, mDeliveringMenu.getMenuIconView());
+    }
+
+    protected void applyLabelsSettings() {
+        if (mStorage.getSharedPreferences().getBoolean(Preferences.PREFERENCES_SHOW_LABELS, true)) {
+            showLabels();
+        } else {
+            hideLabels();
+        }
     }
 
     /**
@@ -995,8 +1091,9 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         if (isInPortrait()) {
             setBottomPadding(mPanelLayout, actionHeight);
         } else {
+            mPanelLayout.setMinimumHeight(actionHeight);
             setRightPadding(mContentLayout, mHelper.dpToPx(PANEL_ACTION_WIDTH));
-            setLeftPadding(mActionsLayout, mPanelLayout.getWidth() - mHelper.dpToPx(PANEL_ACTION_WIDTH));
+            setLeftPadding(mActionsLayout, Math.max(0, mPanelLayout.getWidth() - mHelper.dpToPx(PANEL_ACTION_WIDTH)));
         }
     }
 
