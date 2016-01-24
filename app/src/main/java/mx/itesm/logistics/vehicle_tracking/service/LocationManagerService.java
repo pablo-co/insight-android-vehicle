@@ -52,8 +52,6 @@ public class LocationManagerService extends DaggerIntentService implements Conne
 
     private static final String TAG = "LocationManagerService";
 
-    public static final String ACTION_LOCATION = "mx.itesm.cartokm2.ACTION_LOCATION";
-
     private static final int LOCATION_REQUEST_INTERVAL_ACTIVE = 5000;
     private static final int LOCATION_REQUEST_MAX_INTERVAL_ACTIVE = 5000;
 

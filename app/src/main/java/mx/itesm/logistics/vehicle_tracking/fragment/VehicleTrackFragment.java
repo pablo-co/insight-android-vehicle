@@ -63,6 +63,7 @@ import edu.mit.lastmite.insight_library.service.TimerService;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.ColorTransformation;
 import edu.mit.lastmite.insight_library.util.Storage;
+import edu.mit.lastmite.insight_library.util.TextSpeaker;
 import icepick.Icepick;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.activity.SettingsActivity;
@@ -113,6 +114,9 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     @Inject
     protected transient Lab mLab;
+
+    @Inject
+    protected transient TextSpeaker mTextSpeaker;
 
     @Inject
     protected transient LocationUploader mLocationUploader;
@@ -656,46 +660,6 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     /**
-     * States
-     **/
-
-    protected void renderViewState(TrackState state) {
-        switch (state) {
-            case IDLE:
-                showIdleViews();
-                break;
-            case STARTING:
-                showStartingViews();
-                break;
-            case LOADING:
-                showLoadingViews();
-                break;
-            case PAUSED:
-                showPausedViews();
-                break;
-            case WAITING_LOCATION:
-                showWaitingLocationViews();
-                break;
-            case TRACKING:
-                showTrackingViews();
-                break;
-            case PARKING:
-                showParkingViews();
-                break;
-            case LOADING_TRANSSHIPMENT:
-                showLoadingTransshipmentViews();
-                break;
-            case UNLOADING_TRANSSHIPMENT:
-                showUnloadingTransshipmentViews();
-                break;
-            case DELIVERING:
-                showDeliveringViews();
-                break;
-        }
-        updateStateView();
-    }
-
-    /**
      * Idle
      */
 
@@ -982,6 +946,10 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         if (mState == TrackState.TRACKING || mLastState == TrackState.TRACKING) {
             getActivity().supportInvalidateOptionsMenu();
         }
+
+        if (mStorage.getSharedPreferences().getBoolean(Preferences.PREFERENCES_TEXT_TO_SPEECH, true)) {
+            speakState((TrackState) state);
+        }
     }
 
     @Override
@@ -1019,6 +987,76 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         }
         mStateTextView.setText(label);
     }
+
+
+    protected void renderViewState(TrackState state) {
+        switch (state) {
+            case IDLE:
+                showIdleViews();
+                break;
+            case STARTING:
+                showStartingViews();
+                break;
+            case LOADING:
+                showLoadingViews();
+                break;
+            case PAUSED:
+                showPausedViews();
+                break;
+            case WAITING_LOCATION:
+                showWaitingLocationViews();
+                break;
+            case TRACKING:
+                showTrackingViews();
+                break;
+            case PARKING:
+                showParkingViews();
+                break;
+            case LOADING_TRANSSHIPMENT:
+                showLoadingTransshipmentViews();
+                break;
+            case UNLOADING_TRANSSHIPMENT:
+                showUnloadingTransshipmentViews();
+                break;
+            case DELIVERING:
+                showDeliveringViews();
+                break;
+        }
+        updateStateView();
+    }
+
+    protected void speakState(TrackState state) {
+        String text = "";
+        switch (state) {
+            case IDLE:
+                text = getString(R.string.state_idle_speak);
+                break;
+            case PAUSED:
+                text = getString(R.string.state_paused_speak);
+                break;
+            case LOADING:
+                text = getString(R.string.state_loading_speak);
+                break;
+            case PARKING:
+                text = getString(R.string.state_parking_speak);
+                break;
+            case LOADING_TRANSSHIPMENT:
+            case UNLOADING_TRANSSHIPMENT:
+                text = getString(R.string.state_transshipping_speak);
+                break;
+            case WAITING_LOCATION:
+                text = getString(R.string.state_waiting_speak);
+                break;
+            case TRACKING:
+                text = getString(R.string.state_tracking_speak);
+                break;
+            case DELIVERING:
+                text = getString(R.string.state_delivered_speak);
+                break;
+        }
+        mTextSpeaker.say(text);
+    }
+
 
     protected void updateActionButtonColors() {
         changeDrawableColor(R.mipmap.ic_truck_speed, PANEL_COLOR, mStopButton);

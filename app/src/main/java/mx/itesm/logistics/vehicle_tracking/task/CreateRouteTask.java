@@ -42,6 +42,7 @@ public class CreateRouteTask extends NetworkTask {
     @Override
     public void execute(Callback callback) {
         mCallback = callback;
+        Log.d("gil", mRoute.buildParams().toString());
         mAPIFetch.post("routes/postRoute", mRoute.buildParams(), new APIResponseHandler(mApplication, null, false) {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {

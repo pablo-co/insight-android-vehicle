@@ -10,6 +10,12 @@
         android:title="@string/pref_title_gps_frequency"/>
 
     <SwitchPreference
+        android:defaultValue="true"
+        android:key="text_to_speech"
+        android:title="@string/pref_title_text_to_speech"
+        android:summary="@string/pref_summary_text_to_speech"/>
+
+    <SwitchPreference
         android:defaultValue="false"
         android:key="gps_accelerometer"
         android:title="@string/pref_title_gps_accelerometer"/>
@@ -18,7 +24,6 @@
         android:defaultValue="true"
         android:key="show_labels"
         android:title="@string/pref_title_show_labels"/>
-
 
     <SwitchPreference
         android:defaultValue="false"

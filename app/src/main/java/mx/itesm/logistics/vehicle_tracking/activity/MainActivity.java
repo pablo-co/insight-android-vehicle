@@ -22,19 +22,14 @@
 
 package mx.itesm.logistics.vehicle_tracking.activity;
 
-import android.content.BroadcastReceiver;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
-import android.widget.Toast;
 
 import javax.inject.Inject;
 
@@ -42,8 +37,6 @@ import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.Helper;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleTrackFragment;
-import mx.itesm.logistics.vehicle_tracking.receiver.LocationReceiver;
-import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
 public class MainActivity extends SingleFragmentActivity {
@@ -106,26 +99,4 @@ public class MainActivity extends SingleFragmentActivity {
         }
         return false;
     }
-
-    protected void startBackgroundServices() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        sharedPreferences.edit().putBoolean(getString(R.string.location_enabled), true).apply();
-        Intent intent = new Intent(this, LocationManagerService.class);
-        startService(intent);
-    }
-
-    protected void stopBackgroundServices() {
-        Intent destroyIntent = new Intent(this, LocationManagerService.class);
-        stopService(destroyIntent);
-    }
-
-    private BroadcastReceiver mLocationReceiver = new LocationReceiver() {
-
-        @Override
-        protected void onProviderEnabledChanged(boolean enabled) {
-            int toastText = enabled ? R.string.gps_enabled : R.string.gps_disabled;
-            Toast.makeText(MainActivity.this, toastText, Toast.LENGTH_LONG).show();
-        }
-    };
-
 }
