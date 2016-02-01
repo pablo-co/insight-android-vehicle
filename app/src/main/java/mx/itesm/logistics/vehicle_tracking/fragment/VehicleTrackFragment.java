@@ -53,6 +53,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.event.ClearMapEvent;
+import edu.mit.lastmite.insight_library.event.PauseTimerEvent;
+import edu.mit.lastmite.insight_library.event.StartTimerEvent;
 import edu.mit.lastmite.insight_library.event.TimerEvent;
 import edu.mit.lastmite.insight_library.fragment.TrackFragment;
 import edu.mit.lastmite.insight_library.model.Location;
@@ -64,6 +66,7 @@ import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.ColorTransformation;
 import edu.mit.lastmite.insight_library.util.Storage;
 import edu.mit.lastmite.insight_library.util.TextSpeaker;
+import edu.mit.lastmite.insight_library.util.ViewUtils;
 import icepick.Icepick;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.activity.SettingsActivity;
@@ -400,7 +403,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
                 saveEndTime();
                 sendStartTransshipment();
                 sendStopTransshipment();
-                startNewTrip();
+                waitForLocation(new WaitForLocationCallback() {
+                    @Override
+                    public void onReceivedLocation(Location location) {
+                        startNewTrip();
+                    }
+                });
                 break;
             case UNLOADING_TRANSSHIPMENT:
                 saveEndTime();
@@ -408,16 +416,22 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
                 startTracking();
                 break;
             case PAUSED:
+                unPauseTimer();
                 startTracking();
                 break;
             case LOADING:
                 saveEndTime();
-                startNewTrip();
+                waitForLocation(new WaitForLocationCallback() {
+                    @Override
+                    public void onReceivedLocation(Location location) {
+                        startNewTrip();
+                    }
+                });
                 break;
             case DELIVERING:
                 sendStopDelivering();
                 startTracking();
-                mBus.post(new ClearMapEvent());
+                resetMap();
                 break;
         }
     }
@@ -749,7 +763,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     protected void startPause() {
         runPausedActions();
         showPausedViews();
-        stopTimer();
+        pauseTimer();
     }
 
     protected void runPausedActions() {
@@ -1057,15 +1071,14 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         mTextSpeaker.say(text);
     }
 
-
     protected void updateActionButtonColors() {
-        changeDrawableColor(R.mipmap.ic_truck_speed, PANEL_COLOR, mStopButton);
-        changeDrawableColor(R.mipmap.ic_parking, PANEL_COLOR, mParkingButton);
-        changeDrawableColor(R.mipmap.ic_truck_clock, PANEL_COLOR, mDeliveringButton);
-        changeDrawableColor(R.mipmap.ic_load, PANEL_COLOR, mTransshipmentButton);
-        changeDrawableColor(R.mipmap.ic_storage, PANEL_COLOR, mDCButton);
-        changeDrawableColor(R.mipmap.ic_transship, PANEL_COLOR, mTransButton);
-        changeDrawableColor(R.mipmap.ic_truck_speed, PANEL_COLOR, mDeliveringMenu.getMenuIconView());
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_truck_speed, PANEL_COLOR, mStopButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_parking, PANEL_COLOR, mParkingButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_truck_clock, PANEL_COLOR, mDeliveringButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_load, PANEL_COLOR, mTransshipmentButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_storage, PANEL_COLOR, mDCButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_transship, PANEL_COLOR, mTransButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_truck_speed, PANEL_COLOR, mDeliveringMenu.getMenuIconView());
     }
 
     protected void applyLabelsSettings() {
@@ -1224,5 +1237,13 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     protected void stopTimer() {
         Intent intent = new Intent(getActivity(), TimerService.class);
         getActivity().stopService(intent);
+    }
+
+    protected void unPauseTimer() {
+        mBus.post(new StartTimerEvent());
+    }
+
+    protected void pauseTimer() {
+        mBus.post(new PauseTimerEvent());
     }
 }
