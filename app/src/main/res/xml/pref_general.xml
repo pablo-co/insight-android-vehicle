@@ -27,6 +27,12 @@
 
     <SwitchPreference
         android:defaultValue="false"
+        android:key="show_extra_kpi"
+        android:title="@string/pref_title_show_extra_kpi"
+        android:summary="@string/pref_summary_show_extra_kpi"/>
+
+    <SwitchPreference
+        android:defaultValue="false"
         android:key="small_buttons"
         android:title="@string/pref_title_small_buttons"/>
 

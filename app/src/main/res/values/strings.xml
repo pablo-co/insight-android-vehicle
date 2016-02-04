@@ -33,6 +33,7 @@
 
     <!-- Track menu -->
     <string name="menu_action_start_track">Leaving DC</string>
+    <string name="menu_action_leave_trans">Leaving Transshipment point</string>
     <string name="menu_action_start_load">Loading at DC</string>
     <string name="menu_action_start_transshipment">Loading at Transshipment point</string>
     <string name="menu_action_log_load">Forgot to track loading</string>
@@ -86,7 +87,7 @@
     <string name="state_tracking_action">Back to trip</string>
     <string name="state_transshipping_action">At Transshipment point</string>
     <string name="state_parking_action">Searching for parking</string>
-    <string name="state_delivering_action">Delivered</string>
+    <string name="state_delivering_action">Stopped to deliver</string>
 
 
     <!-- State speaking -->

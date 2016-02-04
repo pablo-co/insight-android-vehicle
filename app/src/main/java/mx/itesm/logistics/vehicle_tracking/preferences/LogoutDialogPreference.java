@@ -32,6 +32,8 @@ public class LogoutDialogPreference extends DaggerDialogPreference {
     @Override
     protected void onDialogClosed(boolean positiveResult) {
         super.onDialogClosed(positiveResult);
-        mApi.logout();
+        if (positiveResult) {
+            mApi.logout();
+        }
     }
 }

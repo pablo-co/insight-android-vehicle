@@ -103,7 +103,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_margin="@dimen/text_size_small"
-                    android:text="@string/menu_action_start_track"
+                    android:text="@string/menu_action_leave_trans"
                     android:textAlignment="center"
                     android:textColor="@color/white_70"
                     android:textSize="@dimen/text_size_small"/>

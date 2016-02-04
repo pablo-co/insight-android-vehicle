@@ -280,6 +280,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         updateActionButtonColors();
         registerPaneListener();
         applyLabelsSettings();
+        applyKPISettings();
     }
 
     @Override
@@ -1086,6 +1087,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
             showLabels();
         } else {
             hideLabels();
+        }
+    }
+
+    protected void applyKPISettings() {
+        if (!mStorage.getSharedPreferences().getBoolean(Preferences.PREFERENCES_EXTRA_KPIS, false)) {
+            hideSpeedKPIs();
         }
     }
 
