@@ -686,6 +686,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     protected void runIdleActions() {
         mLocationUploader.unregister();
         goToState(TrackState.IDLE);
+        resetMap();
         resetStats();
         stopTimer();
     }
