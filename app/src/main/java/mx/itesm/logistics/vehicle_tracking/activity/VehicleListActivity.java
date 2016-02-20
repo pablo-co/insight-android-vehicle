@@ -1,4 +1,7 @@
 /*
+ * [2015] - [2015] Grupo Raido SAPI de CV.
+ * All Rights Reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,32 +25,42 @@
 
 package mx.itesm.logistics.vehicle_tracking.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
-import javax.inject.Inject;
-
+import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
+import edu.mit.lastmite.insight_library.util.ServiceUtils;
 import mx.itesm.logistics.vehicle_tracking.R;
-import mx.itesm.logistics.vehicle_tracking.fragment.LoginFragment;
-import mx.itesm.logistics.vehicle_tracking.util.Lab;
+import mx.itesm.logistics.vehicle_tracking.fragment.VehicleListFragment;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
+public class VehicleListActivity extends SingleFragmentActivity implements TargetListener {
 
-public class LoginActivity extends SingleFragmentActivity implements TargetListener {
+    @ServiceConstant
+    public static String EXTRA_VEHICLE;
 
-    public static final int REQUEST_LOGIN = 0;
+    @ServiceConstant
+    public static String EXTRA_TYPE_ID;
 
-    @Inject
-    protected Lab mLab;
+    public static final int REQUEST_VEHICLE = 0;
+
+    static {
+        ServiceUtils.populateConstants(VehicleListActivity.class);
+    }
+
+    protected Integer mTypeId;
 
     @Override
     protected Fragment createFragment() {
-        LoginFragment fragment = new LoginFragment();
-        fragment.setTargetListener(this, REQUEST_LOGIN);
+        VehicleListFragment fragment = new VehicleListFragment();
+        fragment.setTargetListener(this, REQUEST_VEHICLE);
         return fragment;
     }
 
@@ -59,9 +72,10 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (!mLab.getDriver().isEmpty()) {
-            launchMainActivity();
-        }
+        getSupportActionBar().setTitle(getString(R.string.vehicle_list_title));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
     }
 
     @Override
@@ -69,14 +83,19 @@ public class LoginActivity extends SingleFragmentActivity implements TargetListe
         if (resultCode != TargetListener.RESULT_OK) return;
 
         switch (requestCode) {
-            case REQUEST_LOGIN:
-                launchMainActivity();
+            case REQUEST_VEHICLE:
+                Intent intent = new Intent();
+                intent.putExtra(EXTRA_VEHICLE, data.getSerializableExtra(VehicleListFragment.EXTRA_VEHICLE));
+                setResult(Activity.RESULT_OK, intent);
+                finish();
+                break;
         }
     }
 
-    protected void launchMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+    private void processIntent() {
+        int typeId = getIntent().getIntExtra(EXTRA_TYPE_ID, -1);
+        if (typeId != -1) {
+            mTypeId = typeId;
+        }
     }
 }

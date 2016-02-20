@@ -38,6 +38,8 @@ import org.apache.http.Header;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
+
 import javax.inject.Inject;
 
 import butterknife.Bind;
@@ -50,11 +52,11 @@ import edu.mit.lastmite.insight_library.http.APIFetch;
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
 import edu.mit.lastmite.insight_library.http.ErrorHandler;
 import edu.mit.lastmite.insight_library.model.Session;
-import edu.mit.lastmite.insight_library.model.Vehicle;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.GcmRegistration;
 import edu.mit.lastmite.insight_library.util.ServiceUtils;
 import mx.itesm.logistics.vehicle_tracking.R;
+import mx.itesm.logistics.vehicle_tracking.model.Driver;
 import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
@@ -63,7 +65,7 @@ public class LoginFragment extends FragmentResponder {
     private static final String TAG = "LoginFragment";
 
     @ServiceConstant
-    public static String EXTRA_VEHICLE;
+    public static String EXTRA_DRIVER;
 
     static {
         ServiceUtils.populateConstants(LoginFragment.class);
@@ -84,12 +86,12 @@ public class LoginFragment extends FragmentResponder {
     @Bind(R.id.password)
     protected EditText mPasswordEditText;
 
-    protected Vehicle mVehicle;
+    protected Driver mDriver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mVehicle = new Vehicle();
+        mDriver = new Driver();
     }
 
     @Override
@@ -107,17 +109,17 @@ public class LoginFragment extends FragmentResponder {
 
     @OnClick(R.id.email_sign_in_button)
     protected void onSignInClicked() {
-        updateVehicle();
+        updateDriver();
         try {
-            doLogin(mVehicle);
+            doLogin(mDriver);
         } catch (Exception e) {
             Log.e(TAG, "Error doing login: ", e);
         }
     }
 
-    protected void updateVehicle() {
-        mVehicle.setIdentifier(mEmailEditText.getText().toString());
-        mVehicle.setPassword(mPasswordEditText.getText().toString());
+    protected void updateDriver() {
+        mDriver.setEmail(mEmailEditText.getText().toString());
+        mDriver.setPassword(mPasswordEditText.getText().toString());
     }
 
     protected void lockView() {
@@ -135,26 +137,26 @@ public class LoginFragment extends FragmentResponder {
         mPasswordEditText.setEnabled(state);
     }
 
-    protected void doLogin(final Vehicle vehicle) throws JSONException {
+    protected void doLogin(final Driver driver) throws JSONException {
         lockView();
         GcmRegistration.get(getActivity()).register(new GcmRegistration.Callbacks() {
             @Override
             public void onRegister(Session session) {
                 RequestParams params;
                 try {
-                    params = vehicle.buildParams();
+                    params = driver.buildParams();
                     params.put(Session.JSON_WRAPPER, session.toHashMap());
                 } catch (Exception e) {
                     e.printStackTrace();
                     requestFinished(false);
                     return;
                 }
-                mAPIFetch.post("vehicles/postLogin", params, new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
+                mAPIFetch.post("drivers/postLogin", params, new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         Log.e(TAG, response.toString());
                         try {
-                            loginSuccess(new Vehicle(response));
+                            loginSuccess(new Driver(response));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -177,19 +179,19 @@ public class LoginFragment extends FragmentResponder {
         unlockView();
     }
 
-    protected void loginSuccess(Vehicle vehicle) {
-        if (mLab.setVehicle(vehicle).saveVehicle()) {
+    protected void loginSuccess(Driver vehicle) {
+        if (mLab.setDriver(vehicle).saveDriver()) {
             sendResult(TargetListener.RESULT_OK, vehicle);
         } else {
             ErrorHandler.handleError(getActivity().getSupportFragmentManager(), -1, "Error");
         }
     }
 
-    private void sendResult(int resultCode, Vehicle vehicle) {
+    private void sendResult(int resultCode, Driver driver) {
         if (getTargetListener() == null) return;
 
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_VEHICLE, vehicle);
+        intent.putExtra(EXTRA_DRIVER, (Serializable) driver);
 
         getTargetListener().onResult(getRequestCode(), resultCode, intent);
     }

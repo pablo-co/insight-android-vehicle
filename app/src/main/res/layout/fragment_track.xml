@@ -43,6 +43,11 @@
                     android:layout_marginBottom="8dp"/>
 
                 <include
+                    layout="@layout/track_vehicle"
+                    android:layout_width="match_parent"
+                    android:layout_height="128dp"/>
+
+                <include
                     layout="@layout/track_waiting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

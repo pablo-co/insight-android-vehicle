@@ -43,6 +43,8 @@ public class Api {
 
     public void logout() {
         mLab.deleteVehicle();
+        mLab.deleteDriver();
+        mLab.deleteRoute();
         mStorage.clear();
         Intent intent = new Intent(mAppContext, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

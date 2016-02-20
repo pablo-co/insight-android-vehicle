@@ -1,4 +1,7 @@
 /*
+ * [2015] - [2015] Grupo Raido SAPI de CV.
+ * All Rights Reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -24,6 +27,8 @@ package mx.itesm.logistics.vehicle_tracking.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,50 +37,71 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.rey.material.widget.FloatingActionButton;
+import com.loopj.android.http.RequestParams;
 import com.rey.material.widget.ProgressView;
+import com.squareup.otto.Bus;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import edu.mit.lastmite.insight_library.annotation.ServiceConstant;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.fragment.FragmentResponder;
 import edu.mit.lastmite.insight_library.http.APIFetch;
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
+import edu.mit.lastmite.insight_library.model.User;
 import edu.mit.lastmite.insight_library.model.Vehicle;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.ServiceUtils;
 import mx.itesm.logistics.vehicle_tracking.R;
+import mx.itesm.logistics.vehicle_tracking.model.Driver;
+import mx.itesm.logistics.vehicle_tracking.util.Lab;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
-public class VehicleListFragment extends FragmentResponder implements ListView.OnItemClickListener {
-    public static final String TAG = "VehicleListFragment";
+public class VehicleListFragment extends FragmentResponder implements ListView.OnItemClickListener, TargetListener {
+    private static final String TAG = "VehicleListFragment";
 
     @ServiceConstant
-    public static String EXTRA_TRUCK;
+    public static String EXTRA_VEHICLE;
 
-    public static final int REQUEST_NEW = 0;
+    public static final int REQUEST_NEW_VEHICLE = 0;
 
     static {
         ServiceUtils.populateConstants(VehicleListFragment.class);
     }
 
     @Inject
-    protected APIFetch mAPIFetch;
+    protected Lab mLab;
 
-    private ListView mListView;
-    private VehicleAdapter mVehicleAdapter;
-
+    protected Driver mUser;
+    protected VehicleAdapter mVehicleAdapter;
     protected ArrayList<Vehicle> mVehicles;
 
+    @Inject
+    protected APIFetch mAPIFetch;
+
+    @Inject
+    protected Bus mBus;
+
+    @Bind(R.id.vehicle_list_listView)
+    protected ListView mListView;
+
+    @Bind(R.id.loadingProgressView)
     protected ProgressView mLoadingProgressView;
+
+    @Bind(android.R.id.empty)
     protected View mEmptyView;
-    protected FloatingActionButton mNewVehicleFloatingActionButton;
+
+    @Bind(R.id.vehicle_list_newVehicleButton)
+    protected FloatingActionButton mNewVehicleButton;
 
     @Override
     public void injectFragment(ApplicationComponent component) {
@@ -85,6 +111,7 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mUser = mLab.getDriver();
         mVehicles = new ArrayList<>();
         mVehicleAdapter = new VehicleAdapter(mVehicles);
         loadVehicles();
@@ -94,22 +121,11 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = layoutInflater.inflate(R.layout.fragment_vehicle_list, parent, false);
 
-        mEmptyView = view.findViewById(android.R.id.empty);
-        mLoadingProgressView = (ProgressView) view.findViewById(R.id.loadingProgressView);
+        ButterKnife.bind(this, view);
 
-        mListView = (ListView) view.findViewById(R.id.vehicle_list_listView);
         mListView.setEmptyView(mLoadingProgressView);
         mListView.setAdapter(mVehicleAdapter);
         mListView.setOnItemClickListener(this);
-
-        mNewVehicleFloatingActionButton = (FloatingActionButton) view.findViewById(R.id.vehicle_list_newVehicleFloatingActionButton);
-        mNewVehicleFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Intent intent = new Intent(getActivity(), VehicleNewActivity.class);
-                //startActivityForResult(intent, REQUEST_NEW);
-            }
-        });
 
         return view;
     }
@@ -123,34 +139,50 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onItemClick(AdapterView adapterView, View view, int position, long id) {
+        sendResult(RESULT_OK, mVehicles.get(position));
+    }
+
+    @Override
+    public void onResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != RESULT_OK) return;
+
         switch (requestCode) {
-            case REQUEST_NEW:
-                mVehicleAdapter.notifyDataSetInvalidated();
-                loadVehicles();
+            case REQUEST_NEW_VEHICLE:
+                Vehicle vehicle = (Vehicle) data.getSerializableExtra(NewVehicleFragment.EXTRA_VEHICLE);
+                sendResult(RESULT_OK, vehicle);
                 break;
         }
     }
 
-    @Override
-    public void onItemClick(AdapterView adapterView, View view, int position, long id) {
-        sendResult(TargetListener.RESULT_OK, mVehicles.get(position));
+    @OnClick(R.id.vehicle_list_newVehicleButton)
+    public void newVehicleClicked() {
+        NewVehicleFragment dialog = new NewVehicleFragment();
+        dialog.setTargetListener(this, REQUEST_NEW_VEHICLE);
+        dialog.show(getFragmentManager(), "new_vehicle");
     }
 
     protected void loadVehicles() {
         mVehicles.clear();
-        mAPIFetch.get("vehicles.json", null, new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
+        RequestParams params = new RequestParams();
+        params.put(Driver.JSON_COMPANY_ID, mUser.getCompanyId());
+        mAPIFetch.get("vehicles/getVehicles", params, new APIResponseHandler(getActivity(), getActivity().getSupportFragmentManager(), false) {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                Log.e(TAG, response.toString());
                 try {
-                    for (int i = 0; i < response.length(); ++i) {
-                        mVehicles.add(new Vehicle(response.getJSONObject(i)));
-                    }
-                    mVehicleAdapter.notifyDataSetChanged();
+                    JSONArray vehicles = response.getJSONArray(Vehicle.JSON_WRAPPER + "s");
+                    addVehiclesFromJSON(vehicles);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                super.onSuccess(statusCode, headers, response);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                Log.d(TAG, response.toString());
+                addVehiclesFromJSON(response);
                 super.onSuccess(statusCode, headers, response);
             }
 
@@ -162,13 +194,24 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
         });
     }
 
+    protected void addVehiclesFromJSON(JSONArray response) {
+        try {
+            for (int i = 0; i < response.length(); ++i) {
+                mVehicles.add(new Vehicle(response.getJSONObject(i)));
+            }
+            mVehicleAdapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void sendResult(int resultCode, Vehicle vehicle) {
         if (getTargetListener() == null) {
             return;
         }
 
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_TRUCK, vehicle);
+        intent.putExtra(EXTRA_VEHICLE, vehicle);
 
         getTargetListener().onResult(getRequestCode(), resultCode, intent);
     }
@@ -193,5 +236,4 @@ public class VehicleListFragment extends FragmentResponder implements ListView.O
             return convertView;
         }
     }
-
 }

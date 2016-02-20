@@ -14,6 +14,12 @@
         app:showAsAction="always"/>
 
     <item
+        android:id="@+id/track_menu_item_vehicle"
+        android:icon="@mipmap/ic_truck_speed"
+        android:title="@string/action_logout"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/track_menu_item_settings"
         android:icon="@mipmap/ic_gear"
         android:title="@string/action_logout"

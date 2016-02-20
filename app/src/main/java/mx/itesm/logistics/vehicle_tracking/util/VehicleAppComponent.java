@@ -30,8 +30,10 @@ import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import mx.itesm.logistics.vehicle_tracking.activity.LoginActivity;
 import mx.itesm.logistics.vehicle_tracking.activity.MainActivity;
 import mx.itesm.logistics.vehicle_tracking.activity.SettingsActivity;
+import mx.itesm.logistics.vehicle_tracking.activity.VehicleListActivity;
 import mx.itesm.logistics.vehicle_tracking.fragment.DeliveryFormFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.LoginFragment;
+import mx.itesm.logistics.vehicle_tracking.fragment.NewVehicleFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleTrackFragment;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleListFragment;
 import mx.itesm.logistics.vehicle_tracking.preferences.LogoutDialogPreference;
@@ -53,6 +55,8 @@ public interface VehicleAppComponent extends ApplicationComponent {
 
     void inject(SettingsActivity activity);
 
+    void inject(VehicleListActivity activity);
+
     void inject(VehicleTrackFragment fragment);
 
     void inject(LocationManagerService service);
@@ -64,6 +68,8 @@ public interface VehicleAppComponent extends ApplicationComponent {
     void inject(DeliveryFormFragment fragment);
 
     void inject(VehicleListFragment fragment);
+
+    void inject(NewVehicleFragment fragment);
 
     void inject(CreateRouteTask task);
 

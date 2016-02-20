@@ -28,24 +28,24 @@ import android.util.Log;
 import edu.mit.lastmite.insight_library.model.JSONSerializer;
 import edu.mit.lastmite.insight_library.model.Parking;
 import edu.mit.lastmite.insight_library.model.Route;
-import edu.mit.lastmite.insight_library.model.User;
 import edu.mit.lastmite.insight_library.model.Vehicle;
+import mx.itesm.logistics.vehicle_tracking.model.Driver;
 
 // TODO change serializers and objets to ArrayList and key extraction
 public class Lab {
 
     private static final String TAG = "Lab";
-    private static final String USER_FILENAME = "user.json";
+    private static final String DRIVER_FILENAME = "driver.json";
     private static final String TRUCK_FILENAME = "vehicle.json";
     private static final String ROUTE_FILENAME = "route.json";
-    private static final String PARKING_FILENAME = "route.json";
+    private static final String PARKING_FILENAME = "parking.json";
     
-    protected static User mUser;
+    protected static Driver mDriver;
     protected static Vehicle mVehicle;
     protected static Route mRoute;
     protected static Parking mParking;
 
-    protected JSONSerializer mUserSerializer;
+    protected JSONSerializer mDriverSerializer;
     protected JSONSerializer mVehicleSerializer;
     protected JSONSerializer mRouteSerializer;
     protected JSONSerializer mParkingSerializer;
@@ -55,14 +55,14 @@ public class Lab {
     protected Lab(Context appContext) {
         mAppContext = appContext;
 
-        mUserSerializer = new JSONSerializer(appContext, USER_FILENAME);
+        mDriverSerializer = new JSONSerializer(appContext, DRIVER_FILENAME);
         try {
-            mUser = (User) mUserSerializer.loadObject("edu.mit.lastmite.insight_library.model.User");
+            mDriver = (Driver) mDriverSerializer.loadObject("mx.itesm.logistics.vehicle_tracking.model.Driver");
         } catch (Exception e) {
             Log.e(TAG, "Error loading user: ", e);
         } finally {
-            if (mUser == null) {
-                mUser = new User();
+            if (mDriver == null) {
+                mDriver = new Driver();
             }
         }
 
@@ -100,18 +100,18 @@ public class Lab {
         }
     }
 
-    public User getUser() {
-        return mUser;
+    public Driver getDriver() {
+        return mDriver;
     }
 
-    public Lab setUser(User user) {
-        mUser = user;
+    public Lab setDriver(Driver user) {
+        mDriver = user;
         return this;
     }
 
-    public boolean saveUser() {
+    public boolean saveDriver() {
         try {
-            mUserSerializer.saveObject(mUser);
+            mDriverSerializer.saveObject(mDriver);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -119,10 +119,10 @@ public class Lab {
         }
     }
 
-    public boolean deleteUser() {
+    public boolean deleteDriver() {
         try {
-            mUserSerializer.deleteObject();
-            mUser = new User();
+            mDriverSerializer.deleteObject();
+            mDriver = new Driver();
             return true;
         } catch (Exception e) {
             e.printStackTrace();

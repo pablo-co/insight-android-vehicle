@@ -23,8 +23,11 @@
 package mx.itesm.logistics.vehicle_tracking.service;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -168,6 +171,11 @@ public class LocationManagerService extends DaggerIntentService implements Conne
      */
     protected void startLocationUpdates() {
         if (mGoogleApiClient != null) {
+            if (Build.VERSION.SDK_INT >= 23 &&
+                    (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+                return;
+            }
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, createLocationRequest(), this);
         }
     }
@@ -197,7 +205,8 @@ public class LocationManagerService extends DaggerIntentService implements Conne
 
     protected int getFrequency() {
         String frequencyStr = mStorage.getGlobalString(Preferences.PREFERENCES_GPS_FREQUENCY);
-        int frequency = LOCATION_REQUEST_INTERVAL_ACTIVE;;
+        int frequency = LOCATION_REQUEST_INTERVAL_ACTIVE;
+        ;
         if (frequencyStr != null && !frequencyStr.equals("null")) {
             frequency = Integer.valueOf(frequencyStr);
         }
@@ -206,7 +215,8 @@ public class LocationManagerService extends DaggerIntentService implements Conne
 
     protected int getMaxFrequency() {
         String frequencyStr = mStorage.getGlobalString(Preferences.PREFERENCES_GPS_FREQUENCY);
-        int maxFrequency = LOCATION_REQUEST_MAX_INTERVAL_ACTIVE;;
+        int maxFrequency = LOCATION_REQUEST_MAX_INTERVAL_ACTIVE;
+        ;
         if (frequencyStr != null && !frequencyStr.equals("null")) {
             maxFrequency = Integer.valueOf(frequencyStr);
         }
