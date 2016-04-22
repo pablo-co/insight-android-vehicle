@@ -60,6 +60,7 @@ import edu.mit.lastmite.insight_library.event.TimerEvent;
 import edu.mit.lastmite.insight_library.fragment.TrackFragment;
 import edu.mit.lastmite.insight_library.model.Location;
 import edu.mit.lastmite.insight_library.model.Parking;
+import edu.mit.lastmite.insight_library.model.Pause;
 import edu.mit.lastmite.insight_library.model.Route;
 import edu.mit.lastmite.insight_library.model.Stop;
 import edu.mit.lastmite.insight_library.model.Vehicle;
@@ -78,9 +79,11 @@ import mx.itesm.logistics.vehicle_tracking.model.Transshipment;
 import mx.itesm.logistics.vehicle_tracking.queue.VehicleNetworkTaskQueue;
 import mx.itesm.logistics.vehicle_tracking.service.LocationManagerService;
 import mx.itesm.logistics.vehicle_tracking.task.CreateParkingTask;
+import mx.itesm.logistics.vehicle_tracking.task.CreatePauseTask;
 import mx.itesm.logistics.vehicle_tracking.task.CreateRouteTask;
 import mx.itesm.logistics.vehicle_tracking.task.CreateStopTask;
 import mx.itesm.logistics.vehicle_tracking.task.CreateTransshipmentTask;
+import mx.itesm.logistics.vehicle_tracking.task.StopPauseTask;
 import mx.itesm.logistics.vehicle_tracking.task.StopRouteTask;
 import mx.itesm.logistics.vehicle_tracking.task.StopStopTask;
 import mx.itesm.logistics.vehicle_tracking.task.StopTransshipmentTask;
@@ -143,6 +146,9 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     @icepick.State
     protected Transshipment mTransshipment;
+
+    @icepick.State
+    protected Pause mPause;
 
     @icepick.State
     protected long mLoadingStartTime = -1;
@@ -259,6 +265,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         resetRoute();
         resetParking();
         resetStop();
+        resetPause();
         startBackgroundServices();
     }
 
@@ -281,7 +288,6 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         mSlidingUpPanel.setTouchEnabled(false);
         mDCOverlayMenuView.setToggle(mDCButton);
         mTransOverlayMenuView.setToggle(mTransButton);
-        mState = TrackState.TRACKING;
         renderViewState((TrackState) mState);
         updateActionButtonColors();
         registerPaneListener();
@@ -440,6 +446,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
                 break;
             case PAUSED:
                 unPauseTimer();
+                sendStopPause();
                 startTracking();
                 break;
             case LOADING:
@@ -683,6 +690,17 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         }
     }
 
+    protected void resetPause() {
+        mPause = new Pause();
+
+        if (mLastLocation != null ) {
+            mPause.setLatitudeStart(mLastLocation.getLatitude());
+            mPause.setLongitudeStart(mLastLocation.getLongitude());
+            mPause.setLatitudeEnd(mLastLocation.getLatitude());
+            mPause.setLongitudeEnd(mLastLocation.getLongitude());
+        }
+    }
+
     protected void startNewTrip() {
         sendStartRoute();
         startTracking();
@@ -802,6 +820,8 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void runPausedActions() {
+        sendStartPause();
+        mLocationUploader.unregister();
         goToState(TrackState.PAUSED);
     }
 
@@ -1207,6 +1227,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void sendStopRoute() {
+        mRoute.setEndTime(null);
         mRoute.measureTime();
         StopRouteTask task = new StopRouteTask(mRoute);
         mNetworkTaskQueue.add(task);
@@ -1237,6 +1258,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void sendStopDelivering() {
+        mStop.setEndTime(null);
         mStop.measureTime();
         StopStopTask task = new StopStopTask(mStop);
         mNetworkTaskQueue.add(task);
@@ -1253,8 +1275,31 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void sendStopTransshipment() {
+        mTransshipment.setEndTime(null);
         mTransshipment.measureTime();
         StopTransshipmentTask task = new StopTransshipmentTask(mTransshipment);
+        mNetworkTaskQueue.add(task);
+    }
+
+    /**
+     * Pauses
+     */
+
+    protected void sendStartPause() {
+        resetPause();
+        mPause.measureTime();
+        CreatePauseTask task = new CreatePauseTask(mPause);
+        mNetworkTaskQueue.add(task);
+    }
+
+    protected void sendStopPause() {
+        mPause.setEndTime(null);
+        mPause.measureTime();
+        if (mLastLocation != null) {
+            mPause.setLatitudeEnd(mLastLocation.getLatitude());
+            mPause.setLongitudeEnd(mLastLocation.getLongitude());
+        }
+        StopPauseTask task = new StopPauseTask(mPause);
         mNetworkTaskQueue.add(task);
     }
 

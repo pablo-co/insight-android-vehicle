@@ -22,26 +22,37 @@
 
 package mx.itesm.logistics.vehicle_tracking.task;
 
-import android.util.Log;
+import org.apache.http.Header;
+import org.json.JSONObject;
 
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
-import edu.mit.lastmite.insight_library.model.Route;
+import edu.mit.lastmite.insight_library.model.Pause;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
 import mx.itesm.logistics.vehicle_tracking.util.Preferences;
 
-public class StopRouteTask extends NetworkTask {
-    protected Route mRoute;
+public class CreatePauseTask extends NetworkTask {
+    protected Pause mPause;
 
-    public StopRouteTask(Route route) {
-        mRoute = route;
+    public CreatePauseTask(Pause Pause) {
+        mPause = Pause;
     }
 
     @Override
     public void execute(Callback callback) {
         mCallback = callback;
-        updateRoute();
-        Log.d("ROUTEEND", mRoute.buildParams().toString());
-        mAPIFetch.post("routes/postEnd", mRoute.buildParams(), new APIResponseHandler(mApplication, null, false) {
+        updatePause();
+        mAPIFetch.post("pauses/postInitialpause", mPause.buildParams(), new APIResponseHandler(mApplication, null, false) {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                try {
+                    Pause Pause = new Pause(response);
+                    savePauseId(Pause.getId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                super.onSuccess(statusCode, headers, response);
+            }
+
             @Override
             public void onFinish(boolean success) {
                 activateCallback(success);
@@ -51,14 +62,18 @@ public class StopRouteTask extends NetworkTask {
 
     @Override
     public Object getModel() {
-        return mRoute;
+        return mPause;
     }
 
-    protected void updateRoute() {
-        mRoute.setId(getRouteId());
+    protected void updatePause() {
+        mPause.setRouteId(getRouteId());
     }
 
     protected long getRouteId() {
         return getGlobalLong(Preferences.PREFERENCES_ROUTE_ID);
+    }
+
+    protected void savePauseId(long PauseId) {
+        putGlobalLong(Preferences.PREFERENCES_PAUSE_ID, PauseId);
     }
 }

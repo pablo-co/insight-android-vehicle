@@ -22,6 +22,8 @@
 
 package mx.itesm.logistics.vehicle_tracking.task;
 
+import android.util.Log;
+
 import edu.mit.lastmite.insight_library.http.APIResponseHandler;
 import edu.mit.lastmite.insight_library.model.Stop;
 import edu.mit.lastmite.insight_library.task.NetworkTask;
@@ -38,6 +40,7 @@ public class StopStopTask extends NetworkTask {
     public void execute(Callback callback) {
         mCallback = callback;
         updateStop();
+        Log.d("stopEND", mStop.buildParams().toString());
         mAPIFetch.post("stops/postEndstop", mStop.buildParams(), new APIResponseHandler(mApplication, null, false) {
             @Override
             public void onFinish(boolean success) {
