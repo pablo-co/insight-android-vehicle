@@ -22,6 +22,7 @@
 
 package mx.itesm.logistics.vehicle_tracking.fragment;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
@@ -52,6 +53,7 @@ import javax.inject.Inject;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import edu.mit.lastmite.insight_library.activity.SingleFragmentActivity;
 import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.event.ClearMapEvent;
 import edu.mit.lastmite.insight_library.event.PauseTimerEvent;
@@ -73,6 +75,7 @@ import edu.mit.lastmite.insight_library.util.TextSpeaker;
 import edu.mit.lastmite.insight_library.util.ViewUtils;
 import icepick.Icepick;
 import mx.itesm.logistics.vehicle_tracking.R;
+import mx.itesm.logistics.vehicle_tracking.activity.BaseActivity;
 import mx.itesm.logistics.vehicle_tracking.activity.SettingsActivity;
 import mx.itesm.logistics.vehicle_tracking.activity.VehicleListActivity;
 import mx.itesm.logistics.vehicle_tracking.model.Transshipment;
@@ -100,6 +103,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     public static final int REQUEST_VEHICLE = 1;
 
     public static final int PANEL_COLOR = Color.rgb(96, 125, 139);
+    public static final int TRACKING_COLOR = Color.rgb(96, 125, 139);
+    public static final int PARKING_COLOR = Color.rgb(51, 172, 113);
+    public static final int DELIVERING_COLOR = Color.rgb(255, 61, 0);
+    public static final int TRANSSHIPING_COLOR = Color.rgb(0, 61, 255);
+
+    public static final long COLOR_ANIMATION_DURATION = 500;
 
     public enum TrackState implements State {
         IDLE,
@@ -112,6 +121,13 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         LOADING_TRANSSHIPMENT,
         UNLOADING_TRANSSHIPMENT,
         DELIVERING
+    }
+
+    static private class LocationState {
+        static public int TRACKING = 1;
+        static public int PARKING = 2;
+        static public int DELIVERING = 3;
+        static public int PAUSED = 4;
     }
 
     @Inject
@@ -134,6 +150,11 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     @Inject
     protected transient Storage mStorage;
+
+
+    protected int mPreviousColor = PANEL_COLOR;
+    protected int mColor = PANEL_COLOR;
+
 
     @icepick.State
     protected Route mRoute;
@@ -653,6 +674,46 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
         }
     }
 
+    /**
+     * Colors
+     */
+
+    protected void changeThemeColor(int color) {
+        changeToColor(color);
+        animateViewColor(mPanelLayout, mPreviousColor, mColor, COLOR_ANIMATION_DURATION);
+        animateActionBarColor(((BaseActivity) getActivity()).getSupportActionBar(), mPreviousColor, mColor, COLOR_ANIMATION_DURATION);
+        animateStatusBar(mPreviousColor, mColor, COLOR_ANIMATION_DURATION);
+        updateActionButtonColors(mColor);
+    }
+
+    protected void changeToColor(int color) {
+        mPreviousColor = mColor;
+        mColor = color;
+        mApi.setThemeColor(color);
+    }
+
+    protected void animateStatusBar(int fromColor, int toColor, long duration) {
+        ValueAnimator colorAnimation = createColorAnimation(fromColor, toColor, duration);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                ((SingleFragmentActivity) getActivity())
+                        .setDarkenedStatusBarColor(
+                                (int) animator.getAnimatedValue()
+                        );
+            }
+        });
+        colorAnimation.start();
+    }
+
+    protected void updateActionButtonColors(int color) {
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_stop, color, mStopButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_truck_clock, color, mDeliveringButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_parking, color, mParkingButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_storage, color, mDCButton);
+        ViewUtils.changeDrawableColor(getContext(), R.mipmap.ic_load, color, mTransshipmentButton);
+    }
+
     protected void resetRoute() {
         mRoute = mLab.getRoute();
 
@@ -821,8 +882,10 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     protected void runPausedActions() {
         sendStartPause();
-        mLocationUploader.unregister();
+        // Stop sending locations
+        //mLocationUploader.unregister();
         goToState(TrackState.PAUSED);
+        mApi.setLocationState(LocationState.PAUSED);
     }
 
     protected void showPausedViews() {
@@ -843,12 +906,14 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     protected void runTrackingActions() {
         mLocationUploader.register();
         goToState(TrackState.TRACKING);
+        mApi.setLocationState(LocationState.TRACKING);
         resetSectionStats();
         saveEndTime();
         startTimer();
     }
 
     protected void showTrackingViews() {
+        changeThemeColor(TRACKING_COLOR);
         updatePanelShowingButtons();
         hideAllViews();
         showTrackingView();
@@ -865,10 +930,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     protected void runDeliveringActions() {
         goToState(TrackState.DELIVERING);
+        mApi.setLocationState(LocationState.DELIVERING);
         resetSectionStats();
     }
 
     protected void showDeliveringViews() {
+        changeThemeColor(DELIVERING_COLOR);
         updatePanelShowingButtons();
         hideAllViews();
         showDeliveringView();
@@ -886,10 +953,12 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
 
     protected void runParkingActions() {
         goToState(TrackState.PARKING);
+        mApi.setLocationState(LocationState.PARKING);
         resetSectionStats();
     }
 
     protected void showParkingViews() {
+        changeThemeColor(PARKING_COLOR);
         updatePanelShowingButtons();
         hideAllViews();
         showParkingView();
@@ -912,6 +981,7 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     }
 
     protected void showLoadingTransshipmentViews() {
+        changeThemeColor(TRANSSHIPING_COLOR);
         updatePanelShowingButtons();
         hideAllViews();
         showTransshippingView();
@@ -1011,6 +1081,8 @@ public class VehicleTrackFragment extends TrackFragment implements TargetListene
     @Override
     public void goToState(State state) {
         super.goToState(state);
+        mApi.setLocationState(null);
+
         if (mState == TrackState.TRACKING || mLastState == TrackState.TRACKING) {
             getActivity().supportInvalidateOptionsMenu();
         }

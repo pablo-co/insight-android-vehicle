@@ -1,4 +1,7 @@
 /*
+ * [2015] - [2015] Grupo Raido SAPI de CV.
+ * All Rights Reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,62 +25,28 @@
 
 package mx.itesm.logistics.vehicle_tracking.activity;
 
-import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 
 import javax.inject.Inject;
 
 import edu.mit.lastmite.insight_library.activity.SingleFragmentActivity;
-import edu.mit.lastmite.insight_library.communication.TargetListener;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
-import mx.itesm.logistics.vehicle_tracking.R;
-import mx.itesm.logistics.vehicle_tracking.fragment.LoginFragment;
-import mx.itesm.logistics.vehicle_tracking.util.Lab;
+import mx.itesm.logistics.vehicle_tracking.util.Api;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
 
-public class LoginActivity extends SingleFragmentActivity implements TargetListener {
-
-    public static final int REQUEST_LOGIN = 0;
-
+public abstract class BaseActivity extends SingleFragmentActivity {
     @Inject
-    protected Lab mLab;
-
-    @Override
-    protected Fragment createFragment() {
-        LoginFragment fragment = new LoginFragment();
-        fragment.setTargetListener(this, REQUEST_LOGIN);
-        return fragment;
-    }
+    protected Api mApi;
 
     @Override
     public void injectActivity(ApplicationComponent component) {
-        ((VehicleAppComponent) component).inject(this);
+        component.inject(this);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (!mLab.getDriver().isEmpty()) {
-            launchMainActivity();
-        }
-    }
-
-    @Override
-    public void onResult(int requestCode, int resultCode, final Intent data) {
-        if (resultCode != TargetListener.RESULT_OK) return;
-
-        switch (requestCode) {
-            case REQUEST_LOGIN:
-                launchMainActivity();
-        }
-    }
-
-    protected void launchMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+    protected void changeActionBarColor() {
+        setDarkenedStatusBarColor(mApi.getThemeColor());
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(mApi.getThemeColor()));
     }
 }

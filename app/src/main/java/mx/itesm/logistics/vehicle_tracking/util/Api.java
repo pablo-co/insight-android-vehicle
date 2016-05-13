@@ -24,6 +24,7 @@ package mx.itesm.logistics.vehicle_tracking.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 
 import javax.inject.Inject;
 
@@ -31,14 +32,30 @@ import edu.mit.lastmite.insight_library.util.Storage;
 import mx.itesm.logistics.vehicle_tracking.activity.LoginActivity;
 
 public class Api {
+    public static final String THEME_COLOR = "theme_color";
+    public static final int BASE_COLOR = Color.rgb(96, 125, 139);
+
     protected Lab mLab;
     protected Context mAppContext;
     protected Storage mStorage;
+    protected Integer mLocationState;
 
     public Api(Context appContext, Lab lab, Storage storage) {
         mAppContext = appContext;
         mLab = lab;
         mStorage = storage;
+    }
+
+    public void setThemeColor(int color) {
+        mStorage.putGlobalInteger(THEME_COLOR, color);
+    }
+
+    public int getThemeColor() {
+        int storageColor = mStorage.getGlobalInteger(THEME_COLOR);
+        if (storageColor == -1) {
+            storageColor = BASE_COLOR;
+        }
+        return storageColor;
     }
 
     public void logout() {
@@ -49,5 +66,13 @@ public class Api {
         Intent intent = new Intent(mAppContext, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         mAppContext.startActivity(intent);
+    }
+
+    public void setLocationState(Integer state) {
+        mLocationState = state;
+    }
+
+    public Integer getLocationState() {
+        return mLocationState;
     }
 }

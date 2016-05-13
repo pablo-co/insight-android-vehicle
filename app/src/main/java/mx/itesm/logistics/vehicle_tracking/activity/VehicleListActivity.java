@@ -41,7 +41,7 @@ import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleListFragment;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
-public class VehicleListActivity extends SingleFragmentActivity implements TargetListener {
+public class VehicleListActivity extends BaseActivity implements TargetListener {
 
     @ServiceConstant
     public static String EXTRA_VEHICLE;

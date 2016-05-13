@@ -33,13 +33,14 @@ import android.support.v7.widget.Toolbar;
 
 import javax.inject.Inject;
 
+import edu.mit.lastmite.insight_library.activity.SingleFragmentActivity;
 import edu.mit.lastmite.insight_library.util.ApplicationComponent;
 import edu.mit.lastmite.insight_library.util.Helper;
 import mx.itesm.logistics.vehicle_tracking.R;
 import mx.itesm.logistics.vehicle_tracking.fragment.VehicleTrackFragment;
 import mx.itesm.logistics.vehicle_tracking.util.VehicleAppComponent;
 
-public class MainActivity extends SingleFragmentActivity {
+public class MainActivity extends BaseActivity {
     protected static final int REQUEST_LOCATION_ACCESS = 0;
 
     @Inject
@@ -67,6 +68,7 @@ public class MainActivity extends SingleFragmentActivity {
         super.onCreate(savedInstanceState);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        changeActionBarColor();
         askLocationPermissions();
     }
 

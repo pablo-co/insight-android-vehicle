@@ -37,8 +37,8 @@ public class VehicleAppModule {
 
     @Provides
     @Singleton
-    LocationUploader provideLocationUploader(Bus bus, VehicleNetworkTaskQueue queue) {
-        return new LocationUploader(bus, queue);
+    LocationUploader provideLocationUploader(Bus bus, VehicleNetworkTaskQueue queue, Api api) {
+        return new LocationUploader(bus, queue, api);
     }
 
     @Provides

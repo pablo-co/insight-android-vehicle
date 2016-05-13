@@ -12,10 +12,12 @@ public class LocationUploader {
     protected Bus mBus;
     protected NetworkTaskQueue mQueue;
     protected boolean mRegistered;
+    protected Api mApi;
 
-    public LocationUploader(Bus bus, NetworkTaskQueue queue) {
+    public LocationUploader(Bus bus, NetworkTaskQueue queue, Api api) {
         mBus = bus;
         mQueue = queue;
+        mApi = api;
         mRegistered = false;
     }
 
@@ -35,6 +37,7 @@ public class LocationUploader {
 
     @Subscribe
     public void onLocationEvent(Location location) {
+        location.setStatus(mApi.getLocationState());
         CreateLocationTask task = new CreateLocationTask(location);
         mQueue.add(task);
     }
